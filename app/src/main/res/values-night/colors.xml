@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Night palette: same names, same order as values/colors.xml (ColorParityTest). -->
+<resources>
+    <color name="bg">#FF000000</color>            <!-- whole-screen background -->
+    <color name="surface">#FF2A2C30</color>       <!-- panels that carry content -->
+    <color name="sunken">#FF2E3034</color>        <!-- secondary buttons, the selected row -->
+    <color name="card">#FF1F2023</color>          <!-- settings rows -->
+    <color name="line">#FF34373B</color>          <!-- 1 px separators -->
+    <color name="text_primary">#FFF0F1F2</color>
+    <color name="text_secondary">#FFA3A6AB</color>
+    <color name="text_tertiary">#FF75787D</color>
+    <color name="energy">#FFF26B38</color>        <!-- Zeekr orange -->
+    <color name="energy_text">#FFF58A5E</color>
+    <color name="energy_quiet">#FF3A2419</color>
+    <color name="on_energy">#FFFFFFFF</color>
+    <color name="danger">#FFF0555A</color>
+    <color name="danger_text">#FFF59A9D</color>
+    <color name="ripple">#1FF0F1F2</color>
+    <color name="overlay_button">#D92E3034</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

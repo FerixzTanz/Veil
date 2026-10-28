@@ -1,0 +1,47 @@
+# Notice
+
+Veil is free software under the GNU General Public License, version 3 (see `LICENSE`).
+It is an independent, experimental app for the Zeekr 7X head unit. It has no affiliation
+with Zeekr or with Apple Inc. AirPlay is a trademark of Apple Inc.
+
+This file lists every component Veil is built from, where it comes from and its licence.
+It is shipped inside the APK and shown on the About page. Update it in the same change
+that adds or removes a component.
+
+## Design and code adapted from the author's other apps
+
+| Component | Source | Licence |
+|---|---|---|
+| Design shell (64 dp title bar, 280 dp section list, semantic day/night palette, six-step type scale, app-drawn dialogs: `VeilDialogs`, `themes.xml`, `type.xml`, `colors.xml`) | CAMCORDER (the author's Zeekr dashcam app) and [7xDash](https://github.com/zeekrownerapp-hub/7xdash-companion) | GPL-3.0 |
+
+## Libraries fetched by Gradle
+
+| Component | Licence |
+|---|---|
+| AndroidX (AppCompat, Activity, Fragment, RecyclerView, Core) | Apache License 2.0 |
+| Material Components for Android | Apache License 2.0 |
+| JUnit 4 (tests only, not shipped) | Eclipse Public License 1.0 |
+
+## Icons
+
+| Component | Source | Licence |
+|---|---|---|
+| Vector icons (back, AirPlay, moon, Wi-Fi, info) | [Material Symbols / Material Icons](https://fonts.google.com/icons) | Apache License 2.0 |
+
+## Coming in later steps
+
+The dim overlay (step 2) adapts `DimShade`, `DimOverlayService` and `AutoDim` from 7xDash (GPL-3.0).
+The AirPlay receiver (step 3) will add, as 7xDash's own `NOTICE.md` records:
+
+| Component | Source | Licence |
+|---|---|---|
+| Android native bridge (`app/src/main/cpp/*.c`, `*.cpp`, `*.h`, `cmake/`) | [jqssun/android-airplay-server](https://github.com/jqssun/android-airplay-server) `75465c7`, via 7xDash | GPL-3.0 |
+| UxPlay protocol library (`third_party/UxPlay/lib`, patched by the repository above) | [FDH2/UxPlay](https://github.com/FDH2/UxPlay) | GPL-3.0 (contains playfair, llhttp and others; see file headers) |
+| libplist (`third_party/libplist`) | [libimobiledevice/libplist](https://github.com/libimobiledevice/libplist) | LGPL-2.1 |
+| openssl-cmake (`third_party/openssl-cmake`) | [viaduck/openssl-cmake](https://github.com/viaduck/openssl-cmake) | MIT |
+| OpenSSL 3.4.4 (downloaded at build time from the official release, SHA-256 pinned) | [openssl/openssl](https://github.com/openssl/openssl) | Apache License 2.0 |
+| Java side (`app.veil.airplay`, `io.github.jqssun.airplay.bridge`), rewritten from the Kotlin in the repository above | via 7xDash | GPL-3.0 |
+| Oboe (AirPlay audio output) | Google | Apache License 2.0 |
+| AndroidX Media3 ExoPlayer + HLS (video cast from an app's AirPlay button, step 4) | Google | Apache License 2.0 |
+
+Those rows move up into the sections above as each step lands.

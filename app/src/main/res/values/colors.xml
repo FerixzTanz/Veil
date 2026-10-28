@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Day palette. The night file has the same names in the same order
+  (ColorParityTest holds that). Layouts and code use only these names.
+
+  Rules: energy (Zeekr orange) fills and indicates, it never writes text; use
+  energy_text for orange words. danger (red) marks only actions that cannot be
+  undone. Layering is by lightness and a 1 px line, not by shadow.
+-->
+<resources>
+    <color name="bg">#FFF2F2F3</color>            <!-- whole-screen background -->
+    <color name="surface">#FFFAFAFB</color>       <!-- panels that carry content -->
+    <color name="sunken">#FFE6E6E8</color>        <!-- secondary buttons, the selected row -->
+    <color name="card">#FFE6E6E8</color>          <!-- settings rows -->
+    <color name="line">#FFDDDDE0</color>          <!-- 1 px separators -->
+    <color name="text_primary">#FF2A2B2E</color>
+    <color name="text_secondary">#FF6B6D72</color>
+    <color name="text_tertiary">#FF9EA0A5</color>
+    <color name="energy">#FFF0622D</color>        <!-- Zeekr orange: switches, indicators, the one accent per screen -->
+    <color name="energy_text">#FFC9491A</color>   <!-- orange words -->
+    <color name="energy_quiet">#FFFDEDE6</color>  <!-- a faint orange ground -->
+    <color name="on_energy">#FFFFFFFF</color>     <!-- text on orange -->
+    <color name="danger">#FFE0393E</color>        <!-- irreversible actions only -->
+    <color name="danger_text">#FFB32A2F</color>
+    <color name="ripple">#1F2A2B2E</color>
+    <color name="overlay_button">#D9E6E6E8</color> <!-- floating buttons over other apps -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

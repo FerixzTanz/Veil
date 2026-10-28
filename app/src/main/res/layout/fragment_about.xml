@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:padding="@dimen/page_padding">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/about_version"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.Veil.Row" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gutter"
+            android:maxWidth="720dp"
+            android:text="@string/about_licence_line"
+            android:textAppearance="@style/TextAppearance.Veil.Body"
+            android:textColor="@color/text_secondary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/page_padding"
+            android:text="@string/about_components"
+            android:textAppearance="@style/TextAppearance.Veil.Row" />
+
+        <TextView
+            android:id="@+id/about_notice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gutter"
+            android:background="@drawable/bg_card"
+            android:fontFamily="monospace"
+            android:padding="16dp"
+            android:textAppearance="@style/TextAppearance.Veil.Caption"
+            android:textIsSelectable="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/page_padding"
+            android:text="@string/about_licence_title"
+            android:textAppearance="@style/TextAppearance.Veil.Row" />
+
+        <TextView
+            android:id="@+id/about_licence"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gutter"
+            android:background="@drawable/bg_card"
+            android:fontFamily="monospace"
+            android:padding="16dp"
+            android:textAppearance="@style/TextAppearance.Veil.Micro"
+            android:textColor="@color/text_secondary" />
+    </LinearLayout>
+</ScrollView>
