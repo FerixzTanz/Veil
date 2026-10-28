@@ -318,7 +318,10 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
         NativeBridge.nativeSetLogLevel(handle, NativeBridge.LOG_DEBUG);
         NativeBridge.nativeServerAudioConfigure(handle, 0, 95, 0, false, false, true, true, false);
         NativeBridge.nativeSetH265Enabled(handle, false);
-        NativeBridge.nativeSetCodecs(handle, false, true);
+        // ALAC is what an iPhone sends for sound only (a music app's AirPlay button). No
+        // FFmpeg in this build: it plays through Android's own ALAC decoder when the head unit
+        // has one; the log says "audio/alac decoder init failed" when it does not.
+        NativeBridge.nativeSetCodecs(handle, true, true);
         // Video casting (the AirPlay button inside an app) comes in step 4: not offered yet,
         // so iOS keeps apps on screen mirroring.
         NativeBridge.nativeSetHlsEnabled(handle, false);
@@ -326,8 +329,7 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
                 getResources().getConfiguration().getLocales().toLanguageTags().replace(',', ':'));
         NativeBridge.nativeSetFeature(handle, NativeBridge.FT_MIRROR, true);
         // Keep the audio feature bit on: an iPhone expects it from a mirroring receiver;
-        // without it the iPhone can see the receiver but not connect. Music-only AirPlay
-        // still cannot play (no ALAC decoder).
+        // without it the iPhone can see the receiver but not connect.
         NativeBridge.nativeSetFeature(handle, NativeBridge.FT_AUDIO, true);
         NativeBridge.nativeSetPlist(handle, "maxFPS", FPS);
         NativeBridge.nativeSetPlist(handle, "overscanned", 0);
@@ -625,7 +627,7 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     @Override
     public void onAudioFormat(int ct, int spf, boolean usingScreen) {
         AirPlayLog.i("audio format ct=" + ct + " spf=" + spf + " screen=" + usingScreen
-                + (ct == NativeBridge.CT_ALAC ? " (ALAC: not supported, no sound)" : ""));
+                + (ct == NativeBridge.CT_ALAC ? " (ALAC, Android's own decoder)" : ""));
         if (handle == 0) {
             return;
         }

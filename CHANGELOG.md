@@ -11,6 +11,10 @@ Each version's section becomes its GitHub release notes. Versions with a suffix 
 - AirPlay: when the iPhone connects for sound only (the AirPlay icon on a music player rather
   than Screen Mirroring), the AirPlay page says so and points to Screen Mirroring. The 0.1.0
   log from the car showed exactly this: a sound session, no mirror stream.
+- AirPlay sound only: the receiver now offers ALAC, the format an iPhone sends from a music
+  app, and plays it through Android's own ALAC decoder (Veil has no FFmpeg). 0.1.0 said it
+  could not play ALAC and stayed silent. If the head unit has no ALAC decoder, the log says
+  `audio/alac decoder init failed`.
 
 ## 0.1.0-alpha (2026-10-28)
 
