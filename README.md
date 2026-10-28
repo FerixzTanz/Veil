@@ -16,12 +16,16 @@ Full install, connection and release notes arrive with step 5.
 
 ## Build
 
-JDK 17, Android SDK (compileSdk 36), and for the AirPlay native library (step 3) NDK
-27.1.12297006 and CMake 3.22.1. Point `local.properties` at the SDK, then:
+JDK 17, Android SDK (compileSdk 36), and for the AirPlay native library NDK 27.1.12297006 and
+CMake 3.22.1. Point `local.properties` at the SDK, then:
 
 ```bash
 ./gradlew :app:testDebugUnitTest :app:assembleDebug
 ```
+
+Without the NDK, the Java side and the unit tests still build with
+`-Pveil.skipNative=true`; that APK cannot receive AirPlay. The GitHub Actions workflow in
+`.github/workflows/build.yml` does the full native build.
 
 Release builds sign with your own key, passed as `VEIL_KEYSTORE`, `VEIL_KEYSTORE_PASSWORD`,
 `VEIL_KEY_ALIAS` and `VEIL_KEY_PASSWORD` in the environment or `local.properties`. Without them

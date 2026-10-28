@@ -11,7 +11,7 @@ public enum Section {
     AIRPLAY(R.string.section_airplay, R.drawable.ic_airplay) {
         @Override
         public Fragment newFragment() {
-            return PlaceholderFragment.create(R.string.section_airplay, R.string.placeholder_airplay);
+            return new app.veil.airplay.AirPlayFragment();
         }
     },
     DIM(R.string.section_dim, R.drawable.ic_moon) {
@@ -23,7 +23,7 @@ public enum Section {
     NETWORK(R.string.section_network, R.drawable.ic_wifi) {
         @Override
         public Fragment newFragment() {
-            return PlaceholderFragment.create(R.string.section_network, R.string.placeholder_network);
+            return new app.veil.airplay.NetworkFragment();
         }
     },
     ABOUT(R.string.section_about, R.drawable.ic_info) {

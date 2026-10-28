@@ -1,0 +1,295 @@
+package app.veil.airplay;
+
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.LinkAddress;
+import android.net.LinkProperties;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.RouteInfo;
+import android.net.TrafficStats;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.Build;
+import android.os.Process;
+
+import androidx.annotation.Nullable;
+
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+
+/**
+ * Network lines for the AirPlay log and the Network page: which network the car uses for
+ * internet (its own mobile data, a Wi-Fi router, or a phone's hotspot), where the iPhone is,
+ * and how much data a session moved. From 7xDash (GPL-3.0).
+ */
+public final class NetworkReport {
+
+    /** What a cast downloads over, supplied by the cast player in step 4. */
+    public interface RouteDescriber {
+        String describe();
+    }
+
+    private final Context context;
+    private final ConnectivityManager cm;
+    private ConnectivityManager.NetworkCallback watcher;
+    private String lastDefault = "";
+    private long sessionStartBytes = -1;
+    private String sessionKind;
+    @Nullable
+    RouteDescriber castRoute;
+
+    public NetworkReport(Context context) {
+        this.context = context.getApplicationContext();
+        this.cm = this.context.getSystemService(ConnectivityManager.class);
+    }
+
+    /** All networks once, then a line each time the car's internet moves to another network. */
+    void start() {
+        logAll();
+        if (cm == null) {
+            return;
+        }
+        watcher = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(Network network) {
+                defaultChanged(network);
+            }
+
+            @Override
+            public void onCapabilitiesChanged(Network network, NetworkCapabilities caps) {
+                defaultChanged(network);
+            }
+
+            @Override
+            public void onLost(Network network) {
+                AirPlayLog.i("net: the car's internet network went away");
+                lastDefault = "";
+            }
+        };
+        try {
+            cm.registerDefaultNetworkCallback(watcher);
+        } catch (RuntimeException e) {
+            AirPlayLog.w("net: cannot watch the default network: " + e);
+            watcher = null;
+        }
+    }
+
+    void stop() {
+        if (cm != null && watcher != null) {
+            try {
+                cm.unregisterNetworkCallback(watcher);
+            } catch (RuntimeException ignored) {
+                // never registered
+            }
+        }
+        watcher = null;
+    }
+
+    private void defaultChanged(Network network) {
+        String line = describe(network);
+        if (!line.equals(lastDefault)) {
+            lastDefault = line;
+            AirPlayLog.i("net: car internet now via " + line);
+        }
+    }
+
+    /** Every network the car has, the internet one marked. */
+    void logAll() {
+        for (String line : lines()) {
+            AirPlayLog.i("net: " + line);
+        }
+    }
+
+    /** The same, as lines for the Network page: "car internet via …" first, then "also …". */
+    public List<String> lines() {
+        List<String> out = new ArrayList<>();
+        if (cm == null) {
+            out.add("no connectivity service");
+            return out;
+        }
+        Network active = cm.getActiveNetwork();
+        out.add("car internet via " + (active == null ? "nothing (offline)" : describe(active)));
+        for (Network n : cm.getAllNetworks()) {
+            if (!n.equals(active)) {
+                out.add("also " + describe(n));
+            }
+        }
+        return out;
+    }
+
+    /** True when the car's Wi-Fi is an iPhone's Personal Hotspot. */
+    public boolean onIphoneHotspot() {
+        if (cm == null) {
+            return false;
+        }
+        for (Network n : cm.getAllNetworks()) {
+            NetworkCapabilities caps = cm.getNetworkCapabilities(n);
+            LinkProperties link = cm.getLinkProperties(n);
+            if (caps == null || !caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || link == null) {
+                continue;
+            }
+            for (RouteInfo r : link.getRoutes()) {
+                if (r.isDefaultRoute() && r.getGateway() instanceof Inet4Address
+                        && r.getGateway().getHostAddress().startsWith("172.20.10.")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** "Wi-Fi 'Home' on wlan2 192.168.5.79, router 192.168.5.1 (Wi-Fi router), internet ok, unmetered". */
+    String describe(Network n) {
+        NetworkCapabilities caps = cm.getNetworkCapabilities(n);
+        LinkProperties link = cm.getLinkProperties(n);
+        StringBuilder sb = new StringBuilder();
+        boolean wifi = caps != null && caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI);
+        if (caps == null) {
+            sb.append("unknown");
+        } else if (caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) {
+            sb.append("VPN");
+        } else if (wifi) {
+            sb.append("Wi-Fi");
+            String ssid = ssid(caps);
+            if (ssid != null) {
+                sb.append(" '").append(ssid).append('\'');
+            }
+        } else if (caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+            sb.append("the car's own mobile data");
+        } else if (caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) {
+            sb.append("Ethernet (in-car network)");
+        } else if (caps.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)) {
+            sb.append("Bluetooth tethering");
+        } else {
+            sb.append("other");
+        }
+        String gateway = null;
+        if (link != null) {
+            sb.append(" on ").append(link.getInterfaceName());
+            for (LinkAddress a : link.getLinkAddresses()) {
+                if (a.getAddress() instanceof Inet4Address) {
+                    sb.append(' ').append(a.getAddress().getHostAddress());
+                }
+            }
+            for (RouteInfo r : link.getRoutes()) {
+                if (r.isDefaultRoute() && r.getGateway() instanceof Inet4Address) {
+                    gateway = r.getGateway().getHostAddress();
+                    sb.append(", router ").append(gateway);
+                    break;
+                }
+            }
+        }
+        if (wifi) {
+            sb.append(" (").append(wifiKind(gateway, caps)).append(')');
+        }
+        if (caps != null) {
+            sb.append(caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) ? ", internet ok" : ", no internet");
+            sb.append(caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) ? ", unmetered" : ", metered");
+        }
+        return sb.toString();
+    }
+
+    /** iPhone hotspots always use 172.20.10.x; Android ones usually say "metered". */
+    static String wifiKind(@Nullable String gateway, @Nullable NetworkCapabilities caps) {
+        if (gateway != null && gateway.startsWith("172.20.10.")) {
+            return "iPhone Personal Hotspot: the phone's mobile data";
+        }
+        if (caps != null && !caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)) {
+            return "likely a phone hotspot: mobile data";
+        }
+        return "Wi-Fi router";
+    }
+
+    @Nullable
+    private String ssid(NetworkCapabilities caps) {
+        String s = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && caps.getTransportInfo() instanceof WifiInfo) {
+            s = ((WifiInfo) caps.getTransportInfo()).getSSID();
+        }
+        if (s == null || s.contains("unknown")) {
+            try {
+                WifiManager wm = context.getSystemService(WifiManager.class);
+                WifiInfo info = wm == null ? null : wm.getConnectionInfo();
+                s = info == null ? null : info.getSSID();
+            } catch (RuntimeException ignored) {
+                s = null;
+            }
+        }
+        if (s == null || s.contains("unknown")) {
+            return null; // Android hides the name without location access
+        }
+        return s.replace("\"", "");
+    }
+
+    /** "Remote: 192.168.5.23" from the receiver: say where the iPhone is relative to the car. */
+    void iphoneAt(String address) {
+        String clean = address.trim();
+        if (clean.startsWith("::ffff:")) {
+            clean = clean.substring(7);
+        }
+        String where = "not on any of the car's networks";
+        try {
+            InetAddress target = InetAddress.getByName(clean);
+            if (target instanceof Inet4Address) {
+                int t = toInt((Inet4Address) target);
+                for (NetworkInterface ni : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+                    for (InterfaceAddress ia : ni.getInterfaceAddresses()) {
+                        if (!(ia.getAddress() instanceof Inet4Address)) {
+                            continue;
+                        }
+                        int prefix = ia.getNetworkPrefixLength();
+                        int mask = prefix <= 0 ? 0 : -1 << (32 - prefix);
+                        if (((toInt((Inet4Address) ia.getAddress()) ^ t) & mask) == 0) {
+                            where = "on the same network as the car's " + ni.getName() + " "
+                                    + ia.getAddress().getHostAddress() + "/" + prefix;
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            // not an address
+        }
+        AirPlayLog.i("net: iPhone at " + clean + ", " + where);
+    }
+
+    private static int toInt(Inet4Address a) {
+        byte[] b = a.getAddress();
+        return ((b[0] & 0xFF) << 24) | ((b[1] & 0xFF) << 16) | ((b[2] & 0xFF) << 8) | (b[3] & 0xFF);
+    }
+
+    /** Start counting this app's received bytes for a cast or a mirroring session. */
+    void sessionStarted(String kind) {
+        sessionKind = kind;
+        sessionStartBytes = TrafficStats.getUidRxBytes(Process.myUid());
+    }
+
+    /** How much came in during the session, and over what. */
+    void sessionEnded() {
+        if (sessionKind == null || sessionStartBytes < 0) {
+            return;
+        }
+        long now = TrafficStats.getUidRxBytes(Process.myUid());
+        long used = now >= sessionStartBytes ? now - sessionStartBytes : -1;
+        String where;
+        if ("cast".equals(sessionKind)) {
+            where = "downloaded by the car over " + (castRoute != null ? castRoute.describe() : "?");
+        } else {
+            where = "the iPhone's screen over the local Wi-Fi (the iPhone used its own internet)";
+        }
+        AirPlayLog.i(String.format(Locale.US, "net: %s ended, %s received: %s", sessionKind,
+                used < 0 ? "?" : megabytes(used), where));
+        sessionKind = null;
+        sessionStartBytes = -1;
+    }
+
+    static String megabytes(long bytes) {
+        return String.format(Locale.US, "%.1f MB", bytes / (1024.0 * 1024.0));
+    }
+}

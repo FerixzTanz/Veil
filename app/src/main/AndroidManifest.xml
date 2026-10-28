@@ -42,6 +42,23 @@
             </intent-filter>
         </activity>
 
+        <!-- AirPlay receiver: a foreground service that plays the iPhone's sound -->
+        <service
+            android:name=".airplay.AirPlayService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+
+        <!-- AirPlay (and the veil) come back after a reboot if they were left on -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
         <!-- Dim overlay: the full-screen shade and the floating moon button, centre screen only -->
         <service
             android:name=".dim.DimService"

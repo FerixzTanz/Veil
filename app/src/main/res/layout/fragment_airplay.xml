@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:paddingStart="@dimen/page_padding"
+    android:paddingTop="@dimen/gutter"
+    android:paddingEnd="@dimen/page_padding"
+    android:paddingBottom="@dimen/page_padding">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Shown only while the overlay permission is missing -->
+        <LinearLayout
+            android:id="@+id/airplay_permission_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gutter"
+            android:background="@drawable/bg_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/row_padding"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/overlay_needed_title"
+                    android:textAppearance="@style/TextAppearance.Veil.Body" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/airplay_need_overlay"
+                    android:textAppearance="@style/TextAppearance.Veil.Micro"
+                    android:textColor="@color/text_secondary" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/airplay_permission_button"
+                style="@style/Widget.Veil.PrimaryButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/row_padding"
+                android:text="@string/overlay_needed_button" />
+        </LinearLayout>
+
+        <!-- Status and the on/off switch -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gutter"
+            android:background="@drawable/bg_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/row_padding">
+
+            <ImageView
+                android:id="@+id/airplay_icon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_airplay" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/row_padding"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/airplay_state"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Veil.Title" />
+
+                <TextView
+                    android:id="@+id/airplay_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textAppearance="@style/TextAppearance.Veil.Caption"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/airplay_on_summary"
+                    android:textAppearance="@style/TextAppearance.Veil.Micro"
+                    android:textColor="@color/text_tertiary" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/airplay_rename"
+                style="@style/Widget.Veil.SecondaryButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/row_padding"
+                android:text="@string/airplay_rename" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/airplay_enabled"
+                style="@style/Widget.Veil.Switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/row_padding"
+                android:contentDescription="@string/airplay_on" />
+        </LinearLayout>
+
+        <!-- Receiver address, with the Safari test -->
+        <TextView
+            android:id="@+id/airplay_addresses"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gutter"
+            android:background="@drawable/bg_card"
+            android:fontFeatureSettings="tnum"
+            android:lineSpacingExtra="4dp"
+            android:padding="@dimen/row_padding"
+            android:textAppearance="@style/TextAppearance.Veil.Caption"
+            android:textColor="@color/text_secondary"
+            android:textIsSelectable="true"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gutter"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="@dimen/row_padding">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/airplay_how_title"
+                android:textAppearance="@style/TextAppearance.Veil.Body" />
+
+            <TextView
+                android:id="@+id/airplay_steps"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gutter"
+                android:lineSpacingExtra="6dp"
+                android:maxWidth="760dp"
+                android:textAppearance="@style/TextAppearance.Veil.Caption"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/row_padding"
+                android:maxWidth="760dp"
+                android:text="@string/airplay_window_hint"
+                android:textAppearance="@style/TextAppearance.Veil.Caption"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gutter"
+                android:maxWidth="760dp"
+                android:text="@string/airplay_limits"
+                android:textAppearance="@style/TextAppearance.Veil.Micro"
+                android:textColor="@color/text_tertiary" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

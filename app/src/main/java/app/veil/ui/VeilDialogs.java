@@ -11,6 +11,8 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.FrameLayout;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -43,6 +45,33 @@ public final class VeilDialogs {
     private static final int CORNER_DP = 10;
 
     private VeilDialogs() {
+    }
+
+    /** A text field for a dialog, in the app's own look. */
+    public static EditText input(Context context) {
+        EditText input = new EditText(context);
+        float density = context.getResources().getDisplayMetrics().density;
+        input.setBackgroundResource(R.drawable.bg_card);
+        input.setTextColor(ContextCompat.getColor(context, R.color.text_primary));
+        input.setHintTextColor(ContextCompat.getColor(context, R.color.text_secondary));
+        input.setTextSize(TypedValue.COMPLEX_UNIT_PX, context.getResources().getDimension(R.dimen.text_row));
+        int horizontal = Math.round(16 * density);
+        int vertical = Math.round(14 * density);
+        input.setPadding(horizontal, vertical, horizontal, vertical);
+        input.setMinHeight(Math.round(56 * density));
+        return input;
+    }
+
+    /** Gives a dialog's custom view the same side margins as its title and message. */
+    public static View wrap(View content) {
+        Context context = content.getContext();
+        float density = context.getResources().getDisplayMetrics().density;
+        FrameLayout box = new FrameLayout(context);
+        int side = Math.round(24 * density);
+        box.setPadding(side, Math.round(8 * density), side, 0);
+        box.addView(content, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
+        return box;
     }
 
     /** A builder already carrying the app's dialog theme. */

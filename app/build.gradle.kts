@@ -25,9 +25,20 @@ fun signingValue(name: String): String {
 val keystorePath = signingValue("VEIL_KEYSTORE")
 val releaseKeyAvailable = keystorePath.isNotEmpty() && file(keystorePath).exists()
 
+/**
+ * The AirPlay receiver is a native library (app/src/main/cpp, UxPlay through
+ * jqssun/android-airplay-server) that needs NDK 27.1.12297006 and CMake 3.22.1.
+ * CI has them. A machine without them can still compile the Java side and run
+ * the unit tests with -Pveil.skipNative=true; that APK cannot receive AirPlay.
+ */
+val skipNative = (findProperty("veil.skipNative") as String?) == "true"
+
 android {
     namespace = "app.veil"
     compileSdk = 36
+    if (!skipNative) {
+        ndkVersion = "27.1.12297006"
+    }
 
     defaultConfig {
         applicationId = "app.veil.zeekr"
@@ -38,8 +49,25 @@ android {
         versionCode = 1
         versionName = "0.1.0-alpha"
 
-        // The 7X head unit is arm64; the AirPlay native library (step 3) is built for it only.
+        // The 7X head unit is arm64; the AirPlay native library is built for it only.
         ndk { abiFilters += "arm64-v8a" }
+        if (!skipNative) {
+            externalNativeBuild {
+                cmake {
+                    arguments += "-DANDROID_STL=c++_shared"
+                    arguments += "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+                }
+            }
+        }
+    }
+
+    if (!skipNative) {
+        externalNativeBuild {
+            cmake {
+                path = file("src/main/cpp/CMakeLists.txt")
+                version = "3.22.1"
+            }
+        }
     }
 
     signingConfigs {
@@ -71,6 +99,8 @@ android {
 
     buildFeatures {
         buildConfig = true
+        // Oboe's headers and library come through its prefab AAR
+        prefab = !skipNative
     }
 
     testOptions {
@@ -81,6 +111,9 @@ android {
 
 if (!releaseKeyAvailable) {
     logger.warn("Veil: no release key (VEIL_KEYSTORE); the release APK will be unsigned.")
+}
+if (skipNative) {
+    logger.warn("Veil: veil.skipNative=true; the AirPlay native library is left out of this build.")
 }
 
 /**
@@ -119,6 +152,9 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.fragment)
     implementation(libs.recyclerview)
+
+    // AirPlay audio output (the native library links it through prefab)
+    implementation(libs.oboe)
 
     testImplementation(libs.junit)
 }
