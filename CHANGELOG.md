@@ -2,6 +2,18 @@
 
 Each version's section becomes its GitHub release notes. Versions with a suffix are pre-releases.
 
+## 0.2.0-alpha (2026-10-28)
+
+- Video casting: tap the AirPlay button in a video's player on the iPhone and choose Veil. Only
+  the video plays, in the floating window (ExoPlayer, HLS); play, pause, seeking and the audio
+  track picked on the iPhone follow its controls, and the iPhone's own player shows the position.
+  The car downloads the video over its Wi-Fi when it has one with internet, else over its default
+  network; the Network page log says which. A "Video casting" switch on the AirPlay page (on by
+  default) turns it off, which keeps every app on screen mirroring and uses no car internet.
+  Copy-protected apps still will not play. From 7xDash, where the real-car fixes were made:
+  the receiver trims YouTube's track list before fetching, starts after one second of video,
+  and asks for media audio focus so the sound plays without a radio channel first.
+
 ## 0.1.1-alpha (2026-10-28)
 
 - AirPlay picture lag: decoded frames now go on screen from their own thread the moment the

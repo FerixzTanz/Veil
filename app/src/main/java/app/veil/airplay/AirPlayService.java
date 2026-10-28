@@ -51,8 +51,12 @@ import io.github.jqssun.airplay.bridge.RaopCallbackHandler;
  * <p>The protocol is UxPlay's, through jqssun/android-airplay-server's native bridge (both
  * GPL-3.0, see NOTICE.md). From 7xDash (GPL-3.0), with these changes: settings live in
  * {@link Settings}; the picture is never hidden for driving and Veil reads nothing from the
- * car (the owner's decision); video casting arrives in step 4, so the receiver does not offer
- * it yet; no outside speaker.</p>
+ * car (the owner's decision); no outside speaker.</p>
+ *
+ * <p>Video casting: with {@link Settings#castVideo()} on, the receiver offers HLS, and apps
+ * such as YouTube hand over a stream address instead of mirroring; {@link CastPlayer} plays
+ * it in the same floating window and the car downloads it, over its Wi-Fi when it has one
+ * ({@link WifiRoute}). Play, pause and seeking follow the iPhone's controls.</p>
  *
  * <p>Real-car lessons kept from 7xDash's changelog: media audio focus is requested when the
  * iPhone starts streaming, otherwise the car keeps its media channel shut and AirPlay plays
@@ -105,9 +109,11 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     private final List<NsdManager.RegistrationListener> registrations = new ArrayList<>();
     private WifiManager.MulticastLock multicast;
     private final MirrorDecoder decoder = new MirrorDecoder();
+    private CastPlayer cast;
     private NetworkReport net;
-    /** The floating window's surface. */
+    /** The floating window's surface; given to whichever of mirroring and casting is on. */
     private Surface surface;
+    private boolean casting;
     private AirPlayWindow window;
     private final AtomicInteger connections = new AtomicInteger();
     private boolean mirroring;
@@ -218,6 +224,15 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
         }
     }
 
+    /** Video casting was switched on or off: what we offer is in the announcement, so restart. */
+    public static void castingChanged(boolean on) {
+        AirPlayLog.i("video casting offered: " + on);
+        AirPlayService s = live;
+        if (s != null) {
+            s.main.post(() -> s.restartReceiver("video casting " + (on ? "on" : "off")));
+        }
+    }
+
     private static void start(Context context) {
         try {
             ContextCompat.startForegroundService(context, new Intent(context, AirPlayService.class));
@@ -239,7 +254,11 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
             @Override
             public void onSurface(Surface s) {
                 surface = s;
-                decoder.setSurface(s);
+                if (casting) {
+                    cast.setSurface(s);
+                } else {
+                    decoder.setSurface(s);
+                }
             }
 
             @Override
@@ -247,9 +266,37 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
                 restartReceiver("close tapped");
             }
         });
+        cast = new CastPlayer(this, new CastPlayer.Listener() {
+            @Override
+            public void onInfo(float position, float duration, float rate, boolean ready) {
+                long h = handle;
+                if (h != 0) {
+                    NativeBridge.nativeUpdatePlaybackInfo(h, position, duration, rate, ready);
+                }
+            }
+
+            @Override
+            public void onVideoSize(int width, int height) {
+                window.setVideoSize(width, height);
+            }
+
+            @Override
+            public void onFirstFrame() {
+                AirPlayLog.i("cast: first frame");
+                window.setPlaying(true);
+            }
+
+            @Override
+            public void onEnded(String why) {
+                AirPlayLog.i("cast: " + why);
+                castStopped();
+            }
+        });
         AirPlayLog.init(this);
         AirPlayLog.prune(this);
         net = new NetworkReport(this);
+        cast.route.start();
+        net.castRoute = cast.route::describe;
         WORK.post(this::startServer);
     }
 
@@ -273,6 +320,10 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
         main.removeCallbacksAndMessages(null);
         if (window != null) {
             window.hide();
+        }
+        if (cast != null) {
+            cast.stop();
+            cast.route.stop();
         }
         AirPlayLog.i("service stopping");
         if (net != null) {
@@ -322,9 +373,9 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
         // FFmpeg in this build: it plays through Android's own ALAC decoder when the head unit
         // has one; the log says "audio/alac decoder init failed" when it does not.
         NativeBridge.nativeSetCodecs(handle, true, true);
-        // Video casting (the AirPlay button inside an app) comes in step 4: not offered yet,
-        // so iOS keeps apps on screen mirroring.
-        NativeBridge.nativeSetHlsEnabled(handle, false);
+        // Video casting (the AirPlay button inside an app): the iPhone hands over a stream
+        // address. Off keeps iOS on screen mirroring for every app.
+        NativeBridge.nativeSetHlsEnabled(handle, settings.castVideo());
         NativeBridge.nativeSetLang(handle, "", "",
                 getResources().getConfiguration().getLocales().toLanguageTags().replace(',', ':'));
         NativeBridge.nativeSetFeature(handle, NativeBridge.FT_MIRROR, true);
@@ -545,6 +596,10 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     /** Drop any iPhone and start the receiver again (it stays on). Main thread. */
     private void restartReceiver(String why) {
         AirPlayLog.i(why + ": restarting the receiver");
+        if (casting) {
+            cast.stop();
+            casting = false;
+        }
         window.hide();
         WORK.post(() -> {
             stopServer();
@@ -555,6 +610,9 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     // ---- floating window (main thread) ----
 
     private void mirrorStarted() {
+        if (casting) {
+            castStopped();
+        }
         mirroring = true;
         soundOnly = false;
         AirPlayLog.i("mirroring started");
@@ -586,6 +644,55 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
         AirPlayLog.i("mirroring stopped");
         net.sessionEnded();
         mirroring = false;
+        window.hide();
+        setState(connections.get() > 0 ? STATE_CONNECTED : STATE_WAITING);
+    }
+
+    /** Main thread. The iPhone cast a video: play it in the floating window. */
+    private void castStarted(String location, float startSeconds) {
+        AirPlayLog.i("cast: play " + location + " from " + startSeconds + " s");
+        if (mirroring) {
+            mirrorStopped();
+        }
+        casting = true;
+        soundOnly = false;
+        decoder.setSurface(null);
+        if (surface != null) {
+            cast.setSurface(surface);
+        }
+        net.sessionEnded();
+        net.sessionStarted("cast");
+        cast.play(location, startSeconds);
+        setState(STATE_CASTING);
+        if (!Overlays.canDraw(this)) {
+            AirPlayLog.w("no permission to draw over other apps: no window");
+            problem = getString(R.string.airplay_need_overlay);
+            return;
+        }
+        window.show();
+        String refused = window.refused();
+        if (refused != null) {
+            problem = getString(R.string.airplay_window_refused, refused);
+            return;
+        }
+        problem = null;
+        window.setPlaying(false);
+        Toast.makeText(this, R.string.airplay_cast_started, Toast.LENGTH_SHORT).show();
+    }
+
+    /** Main thread. */
+    private void castStopped() {
+        if (!casting) {
+            return;
+        }
+        AirPlayLog.i("cast: stopped");
+        net.sessionEnded();
+        casting = false;
+        cast.stop();
+        cast.setSurface(null);
+        if (surface != null) {
+            decoder.setSurface(surface);
+        }
         window.hide();
         setState(connections.get() > 0 ? STATE_CONNECTED : STATE_WAITING);
     }
@@ -680,6 +787,9 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
                     soundOnly = false;
                     problem = null;
                 }
+                if (casting) {
+                    castStopped();
+                }
                 if (mirroring) {
                     mirrorStopped();
                 } else {
@@ -725,27 +835,36 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     public void onDacpId(String dacpId, String activeRemote) {
     }
 
-    // Video casting is not offered until step 4; these cannot fire, but the bridge needs them.
+    // ---- video casting (native threads) ----
 
     @Override
     public void onVideoPlay(String location, float startPositionSeconds) {
-        AirPlayLog.w("cast requested but video casting is not available yet: " + location);
+        main.post(() -> castStarted(location, startPositionSeconds));
     }
 
     @Override
     public void onVideoScrub(float positionSeconds) {
+        AirPlayLog.i("cast: seek to " + positionSeconds + " s");
+        cast.seek(positionSeconds);
     }
 
     @Override
     public void onVideoRate(float rate) {
+        AirPlayLog.i("cast: rate " + rate);
+        cast.setRate(rate);
     }
 
     @Override
     public void onVideoSelectMedia(String mediaType, String language) {
+        AirPlayLog.i("cast: iPhone picked " + mediaType + " " + language);
+        if ("soun".equals(mediaType)) {
+            cast.setAudioLanguage(language);
+        }
     }
 
     @Override
     public void onVideoStop() {
+        main.post(this::castStopped);
     }
 
     @Override

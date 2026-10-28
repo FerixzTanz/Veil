@@ -129,6 +129,46 @@
                 android:contentDescription="@string/airplay_on" />
         </LinearLayout>
 
+        <!-- Video casting: on, iOS moves video apps from mirroring to casting by itself -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gutter"
+            android:background="@drawable/bg_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/row_padding">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/airplay_cast_title"
+                    android:textAppearance="@style/TextAppearance.Veil.Body" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/airplay_cast_summary"
+                    android:textAppearance="@style/TextAppearance.Veil.Micro"
+                    android:textColor="@color/text_secondary" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/airplay_casting"
+                style="@style/Widget.Veil.Switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/row_padding"
+                android:contentDescription="@string/airplay_cast_title" />
+        </LinearLayout>
+
         <!-- Receiver address, with the Safari test -->
         <TextView
             android:id="@+id/airplay_addresses"

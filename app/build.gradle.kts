@@ -46,8 +46,8 @@ android {
         targetSdk = 36
         // Bump both before every v* tag: versionCode decides whether the car
         // accepts the update over the old one, versionName becomes the release name.
-        versionCode = 2
-        versionName = "0.1.1-alpha"
+        versionCode = 3
+        versionName = "0.2.0-alpha"
 
         // The 7X head unit is arm64; the AirPlay native library is built for it only.
         ndk { abiFilters += "arm64-v8a" }
@@ -155,6 +155,12 @@ dependencies {
 
     // AirPlay audio output (the native library links it through prefab)
     implementation(libs.oboe)
+    // Video cast from an app's AirPlay button: the iPhone hands over an HLS address, ExoPlayer
+    // plays it; OkHttp lets the downloads go over the car's Wi-Fi rather than its mobile data
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.exoplayer.hls)
+    implementation(libs.media3.datasource.okhttp)
+    implementation(libs.okhttp)
 
     testImplementation(libs.junit)
 }

@@ -27,7 +27,7 @@ licence, as 7xDash's own `NOTICE.md` records:
 | libplist (`third_party/libplist`) | [libimobiledevice/libplist](https://github.com/libimobiledevice/libplist) | LGPL-2.1 |
 | openssl-cmake (`third_party/openssl-cmake`) | [viaduck/openssl-cmake](https://github.com/viaduck/openssl-cmake) | MIT |
 | OpenSSL 3.4.4 (downloaded at build time from the official release, SHA-256 pinned, linked statically) | [openssl/openssl](https://github.com/openssl/openssl) | Apache License 2.0 |
-| Java side: `AirPlayService`, `AirPlayWindow`, `MirrorDecoder`, `MdnsResponder`, `NetworkReport`, `AirPlayLog`, `FloatingWindowGestures`, `WindowTouchModel`, and the `io.github.jqssun.airplay.bridge` package (rewritten from the Kotlin in the repository above) | [7xDash](https://github.com/zeekrownerapp-hub/7xdash-companion) | GPL-3.0 |
+| Java side: `AirPlayService`, `AirPlayWindow`, `MirrorDecoder`, `MdnsResponder`, `NetworkReport`, `AirPlayLog`, `CastPlayer`, `WifiRoute`, `FloatingWindowGestures`, `WindowTouchModel`, and the `io.github.jqssun.airplay.bridge` package (rewritten from the Kotlin in the repository above) | [7xDash](https://github.com/zeekrownerapp-hub/7xdash-companion) | GPL-3.0 |
 
 Changes made in 7xDash and kept here: `audio_decoder.h` drops FFmpeg (mirroring audio is AAC-ELD,
 decoded with MediaCodec); OpenSSL is downloaded from the official release and hash-checked.
@@ -39,6 +39,8 @@ decoded with MediaCodec); OpenSSL is downloaded from the official release and ha
 | AndroidX (AppCompat, Activity, Fragment, RecyclerView, Core) | Apache License 2.0 |
 | Material Components for Android | Apache License 2.0 |
 | Oboe 1.9.3 (AirPlay audio output) | Apache License 2.0 |
+| AndroidX Media3 ExoPlayer + HLS 1.5.1 (video cast from an app's AirPlay button) | Apache License 2.0 |
+| OkHttp 4.12.0 (cast downloads routed over the car's Wi-Fi) | Apache License 2.0 |
 | JUnit 4 (tests only, not shipped) | Eclipse Public License 1.0 |
 
 ## Icons
@@ -47,8 +49,3 @@ decoded with MediaCodec); OpenSSL is downloaded from the official release and ha
 |---|---|---|
 | Vector icons (back, AirPlay, moon, Wi-Fi, info) | [Material Symbols / Material Icons](https://fonts.google.com/icons) | Apache License 2.0 |
 
-## Coming in step 4
-
-| Component | Source | Licence |
-|---|---|---|
-| AndroidX Media3 ExoPlayer + HLS, OkHttp (video cast from an app's AirPlay button) | Google, Square | Apache License 2.0 |

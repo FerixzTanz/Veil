@@ -77,6 +77,12 @@ public class AirPlayFragment extends Fragment {
             handler.postDelayed(this::paint, 300);
         });
         view.findViewById(R.id.airplay_rename).setOnClickListener(v -> rename());
+        SwitchCompat casting = view.findViewById(R.id.airplay_casting);
+        casting.setChecked(settings.castVideo());
+        casting.setOnCheckedChangeListener((b, on) -> {
+            settings.setCastVideo(on);
+            AirPlayService.castingChanged(on);
+        });
         paint();
     }
 

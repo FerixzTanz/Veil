@@ -59,6 +59,9 @@
     <string name="airplay_failed">AirPlay could not start.</string>
     <string name="airplay_need_overlay">Allow Veil to draw over other apps to show the iPhone screen.</string>
     <string name="airplay_started">iPhone screen mirroring started</string>
+    <string name="airplay_cast_started">Playing the iPhone\'s video</string>
+    <string name="airplay_cast_title">Video casting</string>
+    <string name="airplay_cast_summary">On: tap the AirPlay button in a video app\'s player and the car plays just the video, downloaded over the car\'s own internet in better quality; play, pause and seeking follow the iPhone. Apps like YouTube switch from mirroring to casting by themselves. Off: mirroring only, and the car uses no internet.</string>
     <string name="airplay_sound_only">The iPhone connected for sound only, which shows no picture. To see its screen, open Control Center and tap Screen Mirroring (the two rectangles), not the AirPlay icon on the music player.</string>
     <string name="airplay_window_refused">The iPhone is mirroring, but the car refused the floating window (%1$s). The Network page log has the details.</string>
     <string name="airplay_state_waiting">Ready as “%1$s”</string>
@@ -74,9 +77,9 @@
     <string name="airplay_rename_title">Receiver name</string>
     <string name="airplay_rename_message">The name the iPhone shows in its Screen Mirroring list.</string>
     <string name="airplay_how_title">Mirror your iPhone</string>
-    <string name="airplay_steps">1. Put the iPhone and the car on the same Wi-Fi. The usual way is to join the iPhone\'s Personal Hotspot from the car.\n2. On the iPhone, open Control Center and tap Screen Mirroring.\n3. Choose “%1$s”.</string>
+    <string name="airplay_steps">1. Put the iPhone and the car on the same Wi-Fi. The usual way is to join the iPhone\'s Personal Hotspot from the car.\n2. On the iPhone, open Control Center and tap Screen Mirroring.\n3. Choose “%1$s”.\n\nTo send just a video, tap the AirPlay button in the video\'s player and choose “%1$s”.</string>
     <string name="airplay_window_hint">The iPhone screen opens in a floating window. Drag it to move, pinch to resize, push it to a side to dock it, tap the strip to bring it back, double-tap for small or large, and tap × to stop.</string>
-    <string name="airplay_limits">Apps with copy protection (Netflix, Disney+, Apple TV) show a black picture. Video casting from an app\'s AirPlay button arrives in step 4.</string>
+    <string name="airplay_limits">Apps with copy protection (Netflix, Disney+, Apple TV) show a black picture.</string>
     <string name="airplay_notification">Waiting for iPhone screen mirroring</string>
     <string name="airplay_address_title">Receiver address</string>
     <string name="airplay_address_test">Can\'t connect? Open http://%1$s/info in Safari on the iPhone (the page may stay blank). The Network page shows whether it reached the car.</string>
