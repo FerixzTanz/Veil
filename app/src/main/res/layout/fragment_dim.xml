@@ -181,6 +181,87 @@
                 android:layout_marginStart="@dimen/row_padding" />
         </LinearLayout>
 
+        <!-- Automatic: off, by the clock, or with the head unit's night mode -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gutter"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="@dimen/row_padding">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/dim_auto"
+                android:textAppearance="@style/TextAppearance.Veil.Body" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/dim_auto_summary"
+                android:textAppearance="@style/TextAppearance.Veil.Micro"
+                android:textColor="@color/text_secondary" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gutter"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/dim_auto_off"
+                    style="@style/Widget.Veil.SecondaryButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/dim_auto_off" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/dim_auto_clock"
+                    style="@style/Widget.Veil.SecondaryButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/gutter"
+                    android:layout_weight="1"
+                    android:text="@string/dim_auto_clock" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/dim_auto_night"
+                    style="@style/Widget.Veil.SecondaryButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/gutter"
+                    android:layout_weight="1"
+                    android:text="@string/dim_auto_night" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/dim_auto_hours"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/gutter"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/dim_auto_start"
+                    style="@style/Widget.Veil.SecondaryButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/dim_auto_end"
+                    style="@style/Widget.Veil.SecondaryButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/gutter"
+                    android:layout_weight="1" />
+            </LinearLayout>
+        </LinearLayout>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/dim_reset"
             style="@style/Widget.Veil.SecondaryButton"

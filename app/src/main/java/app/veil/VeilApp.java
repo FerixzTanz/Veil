@@ -17,7 +17,8 @@ public class VeilApp extends Application {
         super.onCreate();
         settings = new Settings(new PrefsStore(this));
         // The veil and the moon come back the way they were left.
-        if (Overlays.canDraw(this) && (settings.dimOn() || settings.moonShown())) {
+        boolean autoRule = !"off".equals(settings.autoDimMode());
+        if (Overlays.canDraw(this) && (settings.dimOn() || settings.moonShown() || autoRule)) {
             DimService.sync(this);
         }
     }

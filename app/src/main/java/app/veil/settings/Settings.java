@@ -21,6 +21,9 @@ public final class Settings {
     public static final String DIM_BRIGHTNESS = "dim.brightness";
     public static final String DIM_WARMTH = "dim.warmth";
     public static final String DIM_PASS_THROUGH = "dim.pass_through";
+    public static final String AUTO_DIM = "dim.auto";
+    public static final String AUTO_DIM_START = "dim.auto.start";
+    public static final String AUTO_DIM_END = "dim.auto.end";
     public static final String MOON_SHOWN = "moon.shown";
     public static final String MOON_X = "moon.x";
     public static final String MOON_Y = "moon.y";
@@ -153,6 +156,40 @@ public final class Settings {
         store.remove(DIM_BRIGHTNESS);
         store.remove(DIM_WARMTH);
         store.remove(DIM_PASS_THROUGH);
+    }
+
+    /** The key of the automatic rule: "off", "clock" or "night". The dim package turns it into a mode. */
+    public String autoDimMode() {
+        return getString(AUTO_DIM, "off");
+    }
+
+    public void setAutoDimMode(String key) {
+        putString(AUTO_DIM, key);
+    }
+
+    /** Hour 0..23 the clock rule turns the veil on. */
+    public int autoDimStartHour() {
+        return clampHour(getInt(AUTO_DIM_START, 19));
+    }
+
+    public void setAutoDimStartHour(int hour) {
+        putInt(AUTO_DIM_START, clampHour(hour));
+    }
+
+    /** Hour 0..23 the clock rule turns the veil off. */
+    public int autoDimEndHour() {
+        return clampHour(getInt(AUTO_DIM_END, 7));
+    }
+
+    public void setAutoDimEndHour(int hour) {
+        putInt(AUTO_DIM_END, clampHour(hour));
+    }
+
+    private static int clampHour(int hour) {
+        if (hour < 0) {
+            return 0;
+        }
+        return Math.min(hour, 23);
     }
 
     /** The floating moon button is on screen. */

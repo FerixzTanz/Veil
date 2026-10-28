@@ -32,6 +32,9 @@ public class SettingsTest {
         assertEquals(Settings.DIM_WARMTH_DEFAULT, settings.dimWarmth());
         assertTrue(settings.dimPassThrough());
         assertTrue(settings.moonShown());
+        assertEquals("off", settings.autoDimMode());
+        assertEquals(19, settings.autoDimStartHour());
+        assertEquals(7, settings.autoDimEndHour());
         assertEquals(Settings.POSITION_UNSET, settings.moonX());
         assertEquals(Settings.POSITION_UNSET, settings.moonY());
     }
@@ -70,6 +73,18 @@ public class SettingsTest {
         assertEquals(100, settings.dimBrightness());
         store.put(Settings.DIM_BRIGHTNESS, "-1");
         assertEquals(0, settings.dimBrightness());
+    }
+
+    @Test
+    public void autoDimHoursAreClamped() {
+        settings.setAutoDimStartHour(25);
+        assertEquals(23, settings.autoDimStartHour());
+        settings.setAutoDimEndHour(-2);
+        assertEquals(0, settings.autoDimEndHour());
+        store.put(Settings.AUTO_DIM_START, "99");
+        assertEquals(23, settings.autoDimStartHour());
+        settings.setAutoDimMode("night");
+        assertEquals("night", settings.autoDimMode());
     }
 
     @Test

@@ -3,6 +3,7 @@ package app.veil.dim;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.hardware.display.DisplayManager;
@@ -48,6 +49,8 @@ public class DimService extends Service {
     private static final long BADGE_MS = 700;
     private static final int SLOP_DP = 8;
     private static final int STEP_DP = 6;
+    /** The clock rule looks at the hour this often. */
+    private static final long AUTO_TICK_MS = 60_000L;
 
     private final Handler main = new Handler(Looper.getMainLooper());
     private Settings settings;
@@ -69,7 +72,17 @@ public class DimService extends Service {
         }
     };
 
-    private final Store.Listener onSetting = key -> main.post(this::sync);
+    private final AutoDim.Follower autoDim = new AutoDim.Follower();
+    private final Runnable autoTick = this::followAutoDim;
+
+    private final Store.Listener onSetting = key -> main.post(() -> {
+        if (Settings.AUTO_DIM.equals(key) || Settings.AUTO_DIM_START.equals(key)
+                || Settings.AUTO_DIM_END.equals(key)) {
+            // A changed rule starts afresh and applies at once.
+            autoDim.reset();
+        }
+        sync();
+    });
 
     /** Make the windows match the settings. Safe to call at any time. */
     public static void sync(Context context) {
@@ -105,6 +118,13 @@ public class DimService extends Service {
     }
 
     @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // The head unit switched day and night: the night-mode rule follows at once.
+        main.post(this::followAutoDim);
+    }
+
+    @Override
     public void onDestroy() {
         settings.removeListener(onSetting);
         main.removeCallbacksAndMessages(null);
@@ -122,6 +142,7 @@ public class DimService extends Service {
     // ------------------------------------------------------------------ state
 
     private void sync() {
+        followAutoDim();
         boolean allowed = windowManager != null && Overlays.canDraw(this);
         boolean wantShade = allowed && settings.dimOn();
         boolean wantMoon = allowed && settings.moonShown();
@@ -150,8 +171,32 @@ public class DimService extends Service {
             detachMoon();
         }
 
-        if (!wantShade && !wantMoon) {
+        if (!wantShade && !wantMoon && autoMode() == AutoDim.Mode.OFF) {
             stopSelf();
+        }
+    }
+
+    // ------------------------------------------------------------------ automatic rule
+
+    private AutoDim.Mode autoMode() {
+        return AutoDim.Mode.fromKey(settings.autoDimMode());
+    }
+
+    /** Applies the automatic rule's edges and keeps the clock ticking while a rule is on. */
+    private void followAutoDim() {
+        main.removeCallbacks(autoTick);
+        AutoDim.Mode mode = autoMode();
+        int hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY);
+        boolean carNight = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                == Configuration.UI_MODE_NIGHT_YES;
+        Boolean change = autoDim.update(AutoDim.wanted(mode, hour,
+                settings.autoDimStartHour(), settings.autoDimEndHour(), carNight));
+        if (change != null && change != settings.dimOn()) {
+            // Writing the setting brings sync() back through the listener.
+            settings.setDimOn(change);
+        }
+        if (mode == AutoDim.Mode.CLOCK) {
+            main.postDelayed(autoTick, AUTO_TICK_MS);
         }
     }
 

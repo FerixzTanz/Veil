@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -32,6 +33,12 @@ public class DimFragment extends Fragment {
     private Slider opacity;
     private Slider brightness;
     private Slider warmth;
+    private Button autoOff;
+    private Button autoClock;
+    private Button autoNight;
+    private View autoHours;
+    private TextView autoStart;
+    private TextView autoEnd;
     private boolean binding;
 
     private final Store.Listener onSetting = key -> {
@@ -96,6 +103,20 @@ public class DimFragment extends Fragment {
             DimService.sync(requireContext());
         });
 
+        autoOff = v.findViewById(R.id.dim_auto_off);
+        autoClock = v.findViewById(R.id.dim_auto_clock);
+        autoNight = v.findViewById(R.id.dim_auto_night);
+        autoHours = v.findViewById(R.id.dim_auto_hours);
+        autoStart = v.findViewById(R.id.dim_auto_start);
+        autoEnd = v.findViewById(R.id.dim_auto_end);
+        autoOff.setOnClickListener(x -> setAutoMode(AutoDim.Mode.OFF));
+        autoClock.setOnClickListener(x -> setAutoMode(AutoDim.Mode.CLOCK));
+        autoNight.setOnClickListener(x -> setAutoMode(AutoDim.Mode.NIGHT_MODE));
+        autoStart.setOnClickListener(x -> pickHour(R.string.dim_auto_from, settings.autoDimStartHour(),
+                settings::setAutoDimStartHour));
+        autoEnd.setOnClickListener(x -> pickHour(R.string.dim_auto_until, settings.autoDimEndHour(),
+                settings::setAutoDimEndHour));
+
         v.findViewById(R.id.dim_reset).setOnClickListener(x -> VeilDialogs.confirmDestructive(
                 requireContext(), getString(R.string.dim_reset), getString(R.string.dim_reset_message),
                 getString(R.string.dim_reset), () -> {
@@ -135,7 +156,51 @@ public class DimFragment extends Fragment {
         warmth.set(settings.dimWarmth());
         passSwitch.setChecked(settings.dimPassThrough());
         moonSwitch.setChecked(settings.moonShown());
+        AutoDim.Mode mode = AutoDim.Mode.fromKey(settings.autoDimMode());
+        choice(autoOff, mode == AutoDim.Mode.OFF);
+        choice(autoClock, mode == AutoDim.Mode.CLOCK);
+        choice(autoNight, mode == AutoDim.Mode.NIGHT_MODE);
+        autoHours.setVisibility(mode == AutoDim.Mode.CLOCK ? View.VISIBLE : View.GONE);
+        autoStart.setText(getString(R.string.dim_auto_from_value, hour(settings.autoDimStartHour())));
+        autoEnd.setText(getString(R.string.dim_auto_until_value, hour(settings.autoDimEndHour())));
         binding = false;
+    }
+
+    private void setAutoMode(AutoDim.Mode mode) {
+        if (mode != AutoDim.Mode.OFF && !Overlays.canDraw(requireContext())) {
+            requestPermission();
+            return;
+        }
+        settings.setAutoDimMode(mode.key);
+        DimService.sync(requireContext());
+        bind();
+    }
+
+    /** The chosen option is the one orange block on the page; the others are grey. */
+    private void choice(Button button, boolean selected) {
+        int bg = selected ? R.color.energy : R.color.sunken;
+        int fg = selected ? R.color.on_energy : R.color.text_primary;
+        button.setBackgroundTintList(androidx.core.content.ContextCompat.getColorStateList(requireContext(), bg));
+        button.setTextColor(androidx.core.content.ContextCompat.getColor(requireContext(), fg));
+    }
+
+    private static String hour(int h) {
+        return String.format(java.util.Locale.ROOT, "%02d:00", h);
+    }
+
+    private void pickHour(int titleRes, int current, java.util.function.IntConsumer onPick) {
+        String[] hours = new String[24];
+        for (int i = 0; i < 24; i++) {
+            hours[i] = hour(i);
+        }
+        VeilDialogs.show(VeilDialogs.builder(requireContext())
+                .setTitle(titleRes)
+                .setSingleChoiceItems(hours, current, (d, which) -> {
+                    onPick.accept(which);
+                    d.dismiss();
+                    bind();
+                })
+                .setNegativeButton(R.string.action_cancel, null), false);
     }
 
     private void requestPermission() {
