@@ -15,6 +15,9 @@ Each version's section becomes its GitHub release notes. Versions with a suffix 
 - The AirPlay page says, under the status line, why there is no picture: the iPhone connected
   for sound only (with a pointer to Screen Mirroring), the overlay permission is missing, or
   the car refused the floating window. Toasts from the receiver may not show on the head unit.
+- Network page: the iPhone's keep-alive (`/feedback`, every two seconds) is left out of the
+  last log lines so the lines that matter fit; the log file keeps everything. "Mirroring
+  stopped" is logged once per session, not twice.
 
 ## 0.1.0-alpha (2026-10-28)
 

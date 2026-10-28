@@ -578,7 +578,11 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
         Toast.makeText(this, R.string.airplay_started, Toast.LENGTH_SHORT).show();
     }
 
+    /** Main thread. Both the last connection closing and the mirror stream ending call it. */
     private void mirrorStopped() {
+        if (!mirroring) {
+            return;
+        }
         AirPlayLog.i("mirroring stopped");
         net.sessionEnded();
         mirroring = false;
