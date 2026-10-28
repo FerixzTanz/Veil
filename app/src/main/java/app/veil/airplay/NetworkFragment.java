@@ -105,6 +105,7 @@ public class NetworkFragment extends Fragment {
         networks.setText(String.join("\n", report.lines()));
 
         List<String> lines = AirPlayLog.recent();
+        lines.removeIf(AirPlayLog::isKeepAlive);
         List<String> tail = lines.subList(Math.max(0, lines.size() - 60), lines.size());
         log.setText(tail.isEmpty() ? getString(R.string.net_log_empty) : String.join("\n", tail));
     }

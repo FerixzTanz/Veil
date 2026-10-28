@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import app.veil.R;
@@ -62,6 +63,9 @@ final class AirPlayWindow {
     private Surface surface;
     private float aspect = 16f / 9f;
     private boolean playing;
+    /** Why the last show() put nothing on screen; null when it worked. */
+    @Nullable
+    private String refused;
 
     AirPlayWindow(Context context, Settings settings, Listener listener) {
         this.context = context;
@@ -69,6 +73,12 @@ final class AirPlayWindow {
         this.listener = listener;
         wm = context.getSystemService(WindowManager.class);
         density = context.getResources().getDisplayMetrics().density;
+    }
+
+    /** Why the last show() put nothing on screen, or null when the window is up. */
+    @Nullable
+    String refused() {
+        return refused;
     }
 
     boolean isShown() {
@@ -130,10 +140,14 @@ final class AirPlayWindow {
         paintStatus();
         try {
             wm.addView(root, lp);
+            refused = null;
             AirPlayLog.i("floating window shown " + lp.width + "x" + lp.height + " at " + lp.x + "," + lp.y);
         } catch (RuntimeException e) {
             AirPlayLog.w("floating window refused: " + e);
+            refused = e.getClass().getSimpleName() + (e.getMessage() != null ? ": " + e.getMessage() : "");
             root = null;
+            video = null;
+            status = null;
         }
     }
 

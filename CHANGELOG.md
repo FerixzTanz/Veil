@@ -2,6 +2,23 @@
 
 Each version's section becomes its GitHub release notes. Versions with a suffix are pre-releases.
 
+## 0.1.1-alpha (2026-10-28)
+
+- AirPlay picture lag: decoded frames now go on screen from their own thread the moment the
+  decoder has them. 0.1.0 collected them only when the next frame arrived, so the picture ran
+  as many frames behind as the car's decoder holds, and since an iPhone sends frames only while
+  its screen changes, the end of each movement waited for the next touch.
+- AirPlay sound only (a music app's AirPlay button rather than Screen Mirroring): the receiver
+  now offers ALAC, the format the iPhone sends for that, and plays it through Android's own
+  ALAC decoder (Veil has no FFmpeg). 0.1.0 had ALAC off and stayed silent. If the head unit
+  has no ALAC decoder, the log says `audio/alac decoder init failed`.
+- The AirPlay page says, under the status line, why there is no picture: the iPhone connected
+  for sound only (with a pointer to Screen Mirroring), the overlay permission is missing, or
+  the car refused the floating window. Toasts from the receiver may not show on the head unit.
+- Network page: the iPhone's keep-alive (`/feedback`, every two seconds) is left out of the
+  last log lines so the lines that matter fit; the log file keeps everything. "Mirroring
+  stopped" is logged once per session, not twice.
+
 ## 0.1.0-alpha (2026-10-28)
 
 First build to run on the car. Untested there: everything below needs an in-car check.

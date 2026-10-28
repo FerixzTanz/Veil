@@ -91,6 +91,9 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     private static volatile int listenPort;
     /** True while Veil's own mDNS responder answers; false when the system one had to. */
     private static volatile boolean ownMdns;
+    /** Why the iPhone's picture has nowhere to go, for the AirPlay page; null when all is well. */
+    @Nullable
+    private static volatile String problem;
 
     private final Handler main = new Handler(Looper.getMainLooper());
     private Settings settings;
@@ -108,6 +111,8 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     private AirPlayWindow window;
     private final AtomicInteger connections = new AtomicInteger();
     private boolean mirroring;
+    /** Main thread. The iPhone connected as a speaker (no screen): {@link #problem} says so. */
+    private boolean soundOnly;
     /** Set when mirroring starts; the first decoded frame clears it and shows the picture. */
     private volatile boolean firstFrame;
     private String name = Settings.DEFAULT_RECEIVER_NAME;
@@ -142,6 +147,16 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
 
     public static boolean ownMdns() {
         return live != null && ownMdns;
+    }
+
+    /**
+     * Why the iPhone's picture is not on screen (it connected for sound only, no overlay
+     * permission, or the window was refused), or null. The AirPlay page shows it: on the 7X
+     * a toast from the service may not appear.
+     */
+    @Nullable
+    public static String problem() {
+        return live == null ? null : problem;
     }
 
     /**
@@ -254,6 +269,7 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     public void onDestroy() {
         live = null;
         state = STATE_NONE;
+        problem = null;
         main.removeCallbacksAndMessages(null);
         if (window != null) {
             window.hide();
@@ -302,7 +318,10 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
         NativeBridge.nativeSetLogLevel(handle, NativeBridge.LOG_DEBUG);
         NativeBridge.nativeServerAudioConfigure(handle, 0, 95, 0, false, false, true, true, false);
         NativeBridge.nativeSetH265Enabled(handle, false);
-        NativeBridge.nativeSetCodecs(handle, false, true);
+        // ALAC is what an iPhone sends for sound only (a music app's AirPlay button). No
+        // FFmpeg in this build: it plays through Android's own ALAC decoder when the head unit
+        // has one; the log says "audio/alac decoder init failed" when it does not.
+        NativeBridge.nativeSetCodecs(handle, true, true);
         // Video casting (the AirPlay button inside an app) comes in step 4: not offered yet,
         // so iOS keeps apps on screen mirroring.
         NativeBridge.nativeSetHlsEnabled(handle, false);
@@ -310,8 +329,7 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
                 getResources().getConfiguration().getLocales().toLanguageTags().replace(',', ':'));
         NativeBridge.nativeSetFeature(handle, NativeBridge.FT_MIRROR, true);
         // Keep the audio feature bit on: an iPhone expects it from a mirroring receiver;
-        // without it the iPhone can see the receiver but not connect. Music-only AirPlay
-        // still cannot play (no ALAC decoder).
+        // without it the iPhone can see the receiver but not connect.
         NativeBridge.nativeSetFeature(handle, NativeBridge.FT_AUDIO, true);
         NativeBridge.nativeSetPlist(handle, "maxFPS", FPS);
         NativeBridge.nativeSetPlist(handle, "overscanned", 0);
@@ -538,20 +556,33 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
 
     private void mirrorStarted() {
         mirroring = true;
+        soundOnly = false;
         AirPlayLog.i("mirroring started");
+        net.sessionStarted("mirroring");
+        setState(STATE_MIRRORING);
         if (!Overlays.canDraw(this)) {
             AirPlayLog.w("no permission to draw over other apps: no window");
-            Toast.makeText(this, R.string.airplay_need_overlay, Toast.LENGTH_LONG).show();
+            problem = getString(R.string.airplay_need_overlay);
+            Toast.makeText(this, problem, Toast.LENGTH_LONG).show();
             return;
         }
         window.show();
+        String refused = window.refused();
+        if (refused != null) {
+            problem = getString(R.string.airplay_window_refused, refused);
+            Toast.makeText(this, problem, Toast.LENGTH_LONG).show();
+            return;
+        }
+        problem = null;
         window.setPlaying(false);
-        net.sessionStarted("mirroring");
-        setState(STATE_MIRRORING);
         Toast.makeText(this, R.string.airplay_started, Toast.LENGTH_SHORT).show();
     }
 
+    /** Main thread. Both the last connection closing and the mirror stream ending call it. */
     private void mirrorStopped() {
+        if (!mirroring) {
+            return;
+        }
         AirPlayLog.i("mirroring stopped");
         net.sessionEnded();
         mirroring = false;
@@ -600,11 +631,21 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     @Override
     public void onAudioFormat(int ct, int spf, boolean usingScreen) {
         AirPlayLog.i("audio format ct=" + ct + " spf=" + spf + " screen=" + usingScreen
-                + (ct == NativeBridge.CT_ALAC ? " (ALAC: not supported, no sound)" : ""));
+                + (ct == NativeBridge.CT_ALAC ? " (ALAC, Android's own decoder)" : ""));
         if (handle == 0) {
             return;
         }
         main.post(this::holdFocus);
+        if (!usingScreen) {
+            // AirPlay from a music player or the audio output picker: sound, never a picture
+            main.post(() -> {
+                if (!mirroring) {
+                    AirPlayLog.w("the iPhone connected for sound only, not screen mirroring");
+                    soundOnly = true;
+                    problem = getString(R.string.airplay_sound_only);
+                }
+            });
+        }
         NativeBridge.nativeServerAudioStart(handle);
         NativeBridge.nativeServerAudioFormat(handle, ct, spf);
     }
@@ -635,6 +676,10 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
             }
             main.post(() -> {
                 releaseFocus();
+                if (soundOnly) {
+                    soundOnly = false;
+                    problem = null;
+                }
                 if (mirroring) {
                     mirrorStopped();
                 } else {

@@ -13,21 +13,29 @@ import android.view.Surface;
  * <p>Follows jqssun/android-airplay-server's VideoRenderer (GPL-3.0), cut down: one codec, no
  * EGL pipeline. When the window's surface goes away the codec stops, and it restarts on the
  * next keyframe once a surface is back.</p>
+ *
+ * <p>Decoded frames are shown by their own thread the moment the codec has them, as the
+ * native audio decoder does. Collecting them only when the next frame came in left the picture
+ * as many frames behind as the decoder holds, and an iPhone sends frames only while its screen
+ * changes, so the end of every movement waited for the next touch.</p>
  */
 final class MirrorDecoder {
 
     private static final String AVC = MediaFormat.MIMETYPE_VIDEO_AVC;
     private static final long FEED_WAIT_US = 20_000L;
+    private static final long SHOW_WAIT_US = 10_000L;
     private static final int FEED_RETRIES = 10;
     private static final int FIRST_FEED_RETRIES = 50;
 
     private final Object lock = new Object();
     private MediaCodec codec;
+    /** Shows {@link #codec}'s frames; runs exactly while the codec does. */
+    private Thread shower;
+    private volatile boolean showing;
     private Surface surface;
     private int width;
     private int height;
     private boolean firstQueued;
-    private final MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 
     void setSize(int w, int h) {
         synchronized (lock) {
@@ -70,7 +78,6 @@ final class MirrorDecoder {
             }
             try {
                 queue(data, ntpTimeNs);
-                drain();
             } catch (Exception e) {
                 AirPlayLog.w("decoder error, resetting: " + e);
                 stopCodec();
@@ -106,7 +113,26 @@ final class MirrorDecoder {
         }
         codec = c;
         firstQueued = false;
+        showing = true;
+        final MediaCodec shown = c;
+        shower = new Thread(() -> show(shown), "airplay-video-out");
+        shower.start();
         AirPlayLog.i("decoder started " + width + "x" + height + " (" + c.getName() + ")");
+    }
+
+    /** Shower thread: each frame on screen as soon as it is decoded (mirroring is live). */
+    private void show(MediaCodec c) {
+        MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+        try {
+            while (showing) {
+                int idx = c.dequeueOutputBuffer(info, SHOW_WAIT_US);
+                if (idx >= 0) {
+                    c.releaseOutputBuffer(idx, true);
+                }
+            }
+        } catch (IllegalStateException e) {
+            // the codec broke; feed() resets it on its next error
+        }
     }
 
     private void queue(byte[] data, long ntpTimeNs) {
@@ -124,18 +150,6 @@ final class MirrorDecoder {
                 firstQueued = true;
                 return;
             }
-            drain();
-        }
-    }
-
-    private void drain() {
-        while (true) {
-            int idx = codec.dequeueOutputBuffer(info, 0);
-            if (idx < 0) {
-                return;
-            }
-            // mirroring is live: show each frame as soon as it is decoded
-            codec.releaseOutputBuffer(idx, true);
         }
     }
 
@@ -143,6 +157,14 @@ final class MirrorDecoder {
         if (codec == null) {
             return;
         }
+        // the shower must be off the codec before it stops
+        showing = false;
+        try {
+            shower.join(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        shower = null;
         try {
             codec.stop();
         } catch (RuntimeException ignored) {

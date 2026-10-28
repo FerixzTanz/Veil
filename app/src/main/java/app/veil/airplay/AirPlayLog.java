@@ -62,6 +62,14 @@ public final class AirPlayLog {
         write("N", message);
     }
 
+    /**
+     * The iPhone's keep-alive, a line every two seconds while it is connected: kept in the file,
+     * left off the Network page so the lines that matter fit.
+     */
+    static boolean isKeepAlive(String line) {
+        return line.contains("url = /feedback,");
+    }
+
     /** The newest lines, oldest first. */
     public static List<String> recent() {
         synchronized (LOCK) {

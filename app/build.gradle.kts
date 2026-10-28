@@ -46,8 +46,8 @@ android {
         targetSdk = 36
         // Bump both before every v* tag: versionCode decides whether the car
         // accepts the update over the old one, versionName becomes the release name.
-        versionCode = 1
-        versionName = "0.1.0-alpha"
+        versionCode = 2
+        versionName = "0.1.1-alpha"
 
         // The 7X head unit is arm64; the AirPlay native library is built for it only.
         ndk { abiFilters += "arm64-v8a" }
