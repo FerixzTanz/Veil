@@ -4,17 +4,17 @@ Each version's section becomes its GitHub release notes. Versions with a suffix 
 
 ## 0.1.1-alpha (2026-10-28)
 
-- AirPlay: the floating window opens on the centre screen the same way the veil does, through
-  that display's own context. In 0.1.0 the iPhone said it was connected and the car showed
-  nothing. If the car still refuses the window, the AirPlay page says why under the status
-  line, because toasts from the receiver may not show on the head unit.
-- AirPlay: when the iPhone connects for sound only (the AirPlay icon on a music player rather
-  than Screen Mirroring), the AirPlay page says so and points to Screen Mirroring. The 0.1.0
-  log from the car showed exactly this: a sound session, no mirror stream.
-- AirPlay sound only: the receiver now offers ALAC, the format an iPhone sends from a music
-  app, and plays it through Android's own ALAC decoder (Veil has no FFmpeg). 0.1.0 said it
-  could not play ALAC and stayed silent. If the head unit has no ALAC decoder, the log says
-  `audio/alac decoder init failed`.
+- AirPlay picture lag: decoded frames now go on screen from their own thread the moment the
+  decoder has them. 0.1.0 collected them only when the next frame arrived, so the picture ran
+  as many frames behind as the car's decoder holds, and since an iPhone sends frames only while
+  its screen changes, the end of each movement waited for the next touch.
+- AirPlay sound only (a music app's AirPlay button rather than Screen Mirroring): the receiver
+  now offers ALAC, the format the iPhone sends for that, and plays it through Android's own
+  ALAC decoder (Veil has no FFmpeg). 0.1.0 had ALAC off and stayed silent. If the head unit
+  has no ALAC decoder, the log says `audio/alac decoder init failed`.
+- The AirPlay page says, under the status line, why there is no picture: the iPhone connected
+  for sound only (with a pointer to Screen Mirroring), the overlay permission is missing, or
+  the car refused the floating window. Toasts from the receiver may not show on the head unit.
 
 ## 0.1.0-alpha (2026-10-28)
 
