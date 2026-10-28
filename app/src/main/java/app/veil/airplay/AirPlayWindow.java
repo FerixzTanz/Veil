@@ -6,9 +6,7 @@ import android.graphics.Outline;
 import android.graphics.PixelFormat;
 import android.graphics.SurfaceTexture;
 import android.graphics.drawable.GradientDrawable;
-import android.hardware.display.DisplayManager;
 import android.util.DisplayMetrics;
-import android.view.Display;
 import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -26,7 +24,6 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import app.veil.R;
-import app.veil.dim.CentreScreen;
 import app.veil.settings.Settings;
 
 /**
@@ -34,10 +31,6 @@ import app.veil.settings.Settings;
  * unit. It moves, pinches and docks to a side ({@link FloatingWindowGestures}); a pinch keeps
  * the iPhone's shape. Double-tap switches between small and large, × ends the mirroring.
  * Where it sat and how big it was are remembered. Main thread only. From 7xDash (GPL-3.0).
- *
- * <p>Drawn on the centre screen through that display's own context, the way the veil's
- * windows are added (known to show on the 7X); a service's own context belongs to no
- * display.</p>
  */
 final class AirPlayWindow {
 
@@ -75,22 +68,11 @@ final class AirPlayWindow {
     private String refused;
 
     AirPlayWindow(Context context, Settings settings, Listener listener) {
-        this.context = centre(context);
+        this.context = context;
         this.settings = settings;
         this.listener = listener;
-        wm = this.context.getSystemService(WindowManager.class);
-        density = this.context.getResources().getDisplayMetrics().density;
-    }
-
-    /** The centre screen's context; the given one when the head unit reports no centre screen. */
-    private static Context centre(Context context) {
-        DisplayManager displays = context.getSystemService(DisplayManager.class);
-        Display display = displays == null ? null : displays.getDisplay(Display.DEFAULT_DISPLAY);
-        if (display == null || !CentreScreen.isCentre(display.getDisplayId())) {
-            AirPlayLog.w("no centre display reported, using the service's own context");
-            return context;
-        }
-        return context.createDisplayContext(display);
+        wm = context.getSystemService(WindowManager.class);
+        density = context.getResources().getDisplayMetrics().density;
     }
 
     /** Why the last show() put nothing on screen, or null when the window is up. */
@@ -143,10 +125,7 @@ final class AirPlayWindow {
                 WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                        | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                        // the TextureView draws nothing without it
-                        | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                        | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT);
         lp.gravity = Gravity.TOP | Gravity.START;
         DisplayMetrics dm = screen();

@@ -235,7 +235,6 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
         live = this;
         settings = VeilApp.settings();
         promote();
-        AirPlayLog.init(this);
         window = new AirPlayWindow(this, settings, new AirPlayWindow.Listener() {
             @Override
             public void onSurface(Surface s) {
@@ -248,6 +247,7 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
                 restartReceiver("close tapped");
             }
         });
+        AirPlayLog.init(this);
         AirPlayLog.prune(this);
         net = new NetworkReport(this);
         WORK.post(this::startServer);
