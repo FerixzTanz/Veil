@@ -1,8 +1,11 @@
 # Changelog
 
-Each version's section becomes its GitHub release notes.
+Each version's section becomes its GitHub release notes. Versions with a suffix are pre-releases.
 
-## Unreleased
+## 0.1.0-alpha (2026-10-28)
+
+First build to run on the car. Untested there: everything below needs an in-car check.
+Video casting from an app's AirPlay button is not in yet.
 
 - AirPlay receiver: the head unit shows up in the iPhone's Screen Mirroring list under a name you
   can change; the iPhone's screen plays in a floating window (drag, pinch, dock to a side with a

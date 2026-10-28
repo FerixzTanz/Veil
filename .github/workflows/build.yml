@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -97,3 +97,41 @@ jobs:
           name: Veil-apk
           path: ${{ steps.apk.outputs.path }}
           if-no-files-found: error
+
+      # A v* tag publishes a release. The notes are that version's section of CHANGELOG.md,
+      # and a version with a suffix (-alpha, -beta, -rc1) is a pre-release.
+      - name: Check the tag matches versionName
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME#v}"
+          if [ "$TAG" != "${{ steps.apk.outputs.version }}" ]; then
+            echo "tag v$TAG does not match versionName ${{ steps.apk.outputs.version }} in app/build.gradle.kts"
+            exit 1
+          fi
+
+      - name: Build release notes
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.apk.outputs.version }}"
+          NOTES=$(awk -v v="$VERSION" '
+            /^## / { if (found) exit; found = index($0, "## " v) == 1; next }
+            found { print }
+          ' CHANGELOG.md)
+          printf '%s\n' "$NOTES" > RELEASE_NOTES.md
+          if [ ! -s RELEASE_NOTES.md ]; then
+            echo "No section for $VERSION in CHANGELOG.md" > RELEASE_NOTES.md
+          fi
+          echo "----- release notes -----"
+          cat RELEASE_NOTES.md
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.apk.outputs.path }}
+          prerelease: ${{ contains(steps.apk.outputs.version, '-') }}
+          draft: false
+          name: ${{ steps.apk.outputs.version }}
+          body_path: RELEASE_NOTES.md
