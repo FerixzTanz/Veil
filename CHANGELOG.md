@@ -8,6 +8,9 @@ Each version's section becomes its GitHub release notes. Versions with a suffix 
   that display's own context. In 0.1.0 the iPhone said it was connected and the car showed
   nothing. If the car still refuses the window, the AirPlay page says why under the status
   line, because toasts from the receiver may not show on the head unit.
+- AirPlay: when the iPhone connects for sound only (the AirPlay icon on a music player rather
+  than Screen Mirroring), the AirPlay page says so and points to Screen Mirroring. The 0.1.0
+  log from the car showed exactly this: a sound session, no mirror stream.
 
 ## 0.1.0-alpha (2026-10-28)
 

@@ -59,6 +59,7 @@
     <string name="airplay_failed">AirPlay could not start.</string>
     <string name="airplay_need_overlay">Allow Veil to draw over other apps to show the iPhone screen.</string>
     <string name="airplay_started">iPhone screen mirroring started</string>
+    <string name="airplay_sound_only">The iPhone connected for sound only, which shows no picture. To see its screen, open Control Center and tap Screen Mirroring (the two rectangles), not the AirPlay icon on the music player.</string>
     <string name="airplay_window_refused">The iPhone is mirroring, but the car refused the floating window (%1$s). The Network page log has the details.</string>
     <string name="airplay_state_waiting">Ready as “%1$s”</string>
     <string name="airplay_state_connected">iPhone connected</string>
