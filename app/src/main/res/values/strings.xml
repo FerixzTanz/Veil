@@ -56,7 +56,6 @@
     <!-- AirPlay -->
     <string name="airplay_close">Close</string>
     <string name="airplay_waiting">Waiting for the iPhone picture…</string>
-    <string name="airplay_paused_driving">Picture hidden while driving. Sound keeps playing.</string>
     <string name="airplay_failed">AirPlay could not start.</string>
     <string name="airplay_need_overlay">Allow Veil to draw over other apps to show the iPhone screen.</string>
     <string name="airplay_started">iPhone screen mirroring started</string>
@@ -75,7 +74,7 @@
     <string name="airplay_how_title">Mirror your iPhone</string>
     <string name="airplay_steps">1. Put the iPhone and the car on the same Wi-Fi. The usual way is to join the iPhone\'s Personal Hotspot from the car.\n2. On the iPhone, open Control Center and tap Screen Mirroring.\n3. Choose “%1$s”.</string>
     <string name="airplay_window_hint">The iPhone screen opens in a floating window. Drag it to move, pinch to resize, push it to a side to dock it, tap the strip to bring it back, double-tap for small or large, and tap × to stop.</string>
-    <string name="airplay_limits">The picture hides whenever the car is in gear or moving; the sound keeps playing. Apps with copy protection (Netflix, Disney+, Apple TV) show a black picture. Video casting from an app\'s AirPlay button arrives in step 4.</string>
+    <string name="airplay_limits">Apps with copy protection (Netflix, Disney+, Apple TV) show a black picture. Video casting from an app\'s AirPlay button arrives in step 4.</string>
     <string name="airplay_notification">Waiting for iPhone screen mirroring</string>
     <string name="airplay_address_title">Receiver address</string>
     <string name="airplay_address_test">Can\'t connect? Open http://%1$s/info in Safari on the iPhone (the page may stay blank). The Network page shows whether it reached the car.</string>
@@ -94,10 +93,6 @@
     <string name="net_reason_no_overlay">Veil may not draw over other apps yet, so the iPhone can connect but no picture will show. Allow it from the AirPlay or Dim page.</string>
     <string name="net_reason_hotspot_hint">The car\'s Wi-Fi is a router, not the iPhone\'s hotspot. That works when the iPhone is on the same router. On the road, use the iPhone\'s Personal Hotspot.</string>
     <string name="net_networks_title">The car\'s networks</string>
-    <string name="net_car_title">Car link</string>
-    <string name="net_car_line">%1$s\n%2$s</string>
-    <string name="net_car_unknown">Gear and speed: not readable right now. The picture is treated as parked and stays visible.</string>
-    <string name="net_car_reading">Gear %1$s, %2$s km/h</string>
     <string name="net_log_title">AirPlay log, last lines</string>
     <string name="net_log_empty">Nothing yet. The full log is in the app\'s files under logs/.</string>
 </resources>

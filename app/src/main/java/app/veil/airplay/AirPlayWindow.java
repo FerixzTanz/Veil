@@ -61,7 +61,6 @@ final class AirPlayWindow {
     private WindowManager.LayoutParams lp;
     private Surface surface;
     private float aspect = 16f / 9f;
-    private boolean blocked;
     private boolean playing;
 
     AirPlayWindow(Context context, Settings settings, Listener listener) {
@@ -177,20 +176,13 @@ final class AirPlayWindow {
         paintStatus();
     }
 
-    /** True while the car is in gear or moving: the picture hides, the sound keeps playing. */
-    void setBlocked(boolean blocked) {
-        this.blocked = blocked;
-        paintStatus();
-    }
-
     private void paintStatus() {
         if (status == null) {
             return;
         }
-        boolean showVideo = playing && !blocked;
-        video.setAlpha(showVideo ? 1f : 0f);
-        status.setVisibility(showVideo ? View.GONE : View.VISIBLE);
-        status.setText(blocked ? R.string.airplay_paused_driving : R.string.airplay_waiting);
+        video.setAlpha(playing ? 1f : 0f);
+        status.setVisibility(playing ? View.GONE : View.VISIBLE);
+        status.setText(R.string.airplay_waiting);
     }
 
     private ImageView button(int icon, int label, View.OnClickListener onClick) {

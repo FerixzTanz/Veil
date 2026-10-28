@@ -7,10 +7,10 @@ Each version's section becomes its GitHub release notes.
 - AirPlay receiver: the head unit shows up in the iPhone's Screen Mirroring list under a name you
   can change; the iPhone's screen plays in a floating window (drag, pinch, dock to a side with a
   strip showing, double-tap for small or large, × to stop) and its sound through the car's
-  speakers with media audio focus, so the radio pauses. The picture hides whenever the car is in
-  gear (D, R, N) or above 3 km/h, read from the car; the sound keeps playing. Veil's own mDNS
-  responder answers each network with its own address. The Network page shows the receiver's
-  address, why the iPhone might not see it, the car's networks, the car link and the AirPlay log.
+  speakers with media audio focus, so the radio pauses. Veil reads nothing from the car and never
+  hides the picture for driving (the owner's decision). Veil's own mDNS responder answers each
+  network with its own address. The Network page shows the receiver's address, why the iPhone
+  might not see it, the car's networks and the AirPlay log.
   AirPlay and the veil come back after a reboot if they were left on. UxPlay through
   jqssun/android-airplay-server, as in 7xDash (all GPL-3.0).
 

@@ -2,8 +2,7 @@
 
 An Android app for the Zeekr 7X head unit with two features:
 
-- **AirPlay receiver**: an iPhone can mirror its screen or cast a video to the car. The picture
-  hides whenever the car is in gear or moving; sound keeps playing.
+- **AirPlay receiver**: an iPhone can mirror its screen or cast a video to the car.
 - **Dim overlay**: an adjustable veil over the centre screen for night driving, with a small
   floating moon button.
 

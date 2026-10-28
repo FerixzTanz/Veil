@@ -38,7 +38,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import app.veil.MainActivity;
 import app.veil.R;
 import app.veil.VeilApp;
-import app.veil.car.CarSignals;
 import app.veil.dim.Overlays;
 import app.veil.settings.Settings;
 import io.github.jqssun.airplay.bridge.NativeBridge;
@@ -51,9 +50,9 @@ import io.github.jqssun.airplay.bridge.RaopCallbackHandler;
  *
  * <p>The protocol is UxPlay's, through jqssun/android-airplay-server's native bridge (both
  * GPL-3.0, see NOTICE.md). From 7xDash (GPL-3.0), with these changes: settings live in
- * {@link Settings}; there is no "show the picture while driving" switch, the picture always
- * hides in gear or above 3 km/h ({@link DrivingGate}) while the sound keeps playing; video
- * casting arrives in step 4, so the receiver does not offer it yet; no outside speaker.</p>
+ * {@link Settings}; the picture is never hidden for driving and Veil reads nothing from the
+ * car (the owner's decision); video casting arrives in step 4, so the receiver does not offer
+ * it yet; no outside speaker.</p>
  *
  * <p>Real-car lessons kept from 7xDash's changelog: media audio focus is requested when the
  * iPhone starts streaming, otherwise the car keeps its media channel shut and AirPlay plays
@@ -67,7 +66,6 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     private static final String CHANNEL_ID = "airplay";
     private static final int NOTIFICATION_ID = 7071;
     private static final String KEY_MAC = "airplay.mac";
-    private static final String CAR_USER = "airplay";
     private static final int PORT = 7000;
     /** Other ports to try when 7000 stays taken (another AirPlay receiver on the car, say). */
     private static final int[] SPARE_PORTS = {7001, 7002, 7003};
@@ -110,11 +108,9 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     private AirPlayWindow window;
     private final AtomicInteger connections = new AtomicInteger();
     private boolean mirroring;
-    private boolean watchingCar;
     /** Set when mirroring starts; the first decoded frame clears it and shows the picture. */
     private volatile boolean firstFrame;
     private String name = Settings.DEFAULT_RECEIVER_NAME;
-    private boolean lastBlocked;
 
     // ---- public switch ----
 
@@ -262,7 +258,6 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
         if (window != null) {
             window.hide();
         }
-        stopWatchingCar();
         AirPlayLog.i("service stopping");
         if (net != null) {
             net.sessionEnded();
@@ -539,7 +534,7 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
         });
     }
 
-    // ---- floating window and the car (main thread) ----
+    // ---- floating window (main thread) ----
 
     private void mirrorStarted() {
         mirroring = true;
@@ -551,7 +546,6 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
         }
         window.show();
         window.setPlaying(false);
-        watchCar();
         net.sessionStarted("mirroring");
         setState(STATE_MIRRORING);
         Toast.makeText(this, R.string.airplay_started, Toast.LENGTH_SHORT).show();
@@ -562,44 +556,7 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
         net.sessionEnded();
         mirroring = false;
         window.hide();
-        stopWatchingCar();
         setState(connections.get() > 0 ? STATE_CONNECTED : STATE_WAITING);
-    }
-
-    private final CarSignals.Listener carListener = (gear, speed) -> checkCar();
-
-    private void watchCar() {
-        if (watchingCar) {
-            return;
-        }
-        watchingCar = true;
-        CarSignals.get().addListener(carListener);
-        CarSignals.get().acquire(this, CAR_USER);
-        checkCar();
-    }
-
-    private void stopWatchingCar() {
-        if (!watchingCar) {
-            return;
-        }
-        watchingCar = false;
-        CarSignals.get().removeListener(carListener);
-        CarSignals.get().release(CAR_USER);
-    }
-
-    /** The picture hides in gear or above 3 km/h. No switch overrides it. */
-    private void checkCar() {
-        if (!mirroring || window == null) {
-            return;
-        }
-        String gear = CarSignals.get().gear();
-        Float speed = CarSignals.get().speedKmh();
-        boolean blocked = DrivingGate.blocked(gear, speed);
-        if (blocked != lastBlocked) {
-            lastBlocked = blocked;
-            AirPlayLog.i((blocked ? "picture hidden" : "picture shown") + ": gear=" + gear + " speed=" + speed);
-        }
-        window.setBlocked(blocked);
     }
 
     // ---- RaopCallbackHandler (native threads) ----
