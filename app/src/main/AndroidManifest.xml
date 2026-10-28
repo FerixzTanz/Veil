@@ -42,6 +42,11 @@
             </intent-filter>
         </activity>
 
+        <!-- Dim overlay: the full-screen shade and the floating moon button, centre screen only -->
+        <service
+            android:name=".dim.DimService"
+            android:exported="false" />
+
     </application>
 
 </manifest>

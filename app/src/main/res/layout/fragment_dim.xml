@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:paddingStart="@dimen/page_padding"
+    android:paddingTop="@dimen/gutter"
+    android:paddingEnd="@dimen/page_padding"
+    android:paddingBottom="@dimen/page_padding">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Shown only while the overlay permission is missing -->
+        <LinearLayout
+            android:id="@+id/dim_permission_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gutter"
+            android:background="@drawable/bg_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/row_padding"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/overlay_needed_title"
+                    android:textAppearance="@style/TextAppearance.Veil.Body" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/overlay_needed_body"
+                    android:textAppearance="@style/TextAppearance.Veil.Micro"
+                    android:textColor="@color/text_secondary" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/dim_permission_button"
+                style="@style/Widget.Veil.PrimaryButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/row_padding"
+                android:text="@string/overlay_needed_button" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gutter"
+            android:background="@drawable/bg_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/row_padding">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dim_on"
+                    android:textAppearance="@style/TextAppearance.Veil.Body" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/dim_on_summary"
+                    android:textAppearance="@style/TextAppearance.Veil.Micro"
+                    android:textColor="@color/text_secondary" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/dim_on"
+                style="@style/Widget.Veil.Switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/row_padding" />
+        </LinearLayout>
+
+        <include
+            android:id="@+id/dim_opacity"
+            layout="@layout/row_slider" />
+
+        <include
+            android:id="@+id/dim_brightness"
+            layout="@layout/row_slider" />
+
+        <include
+            android:id="@+id/dim_warmth"
+            layout="@layout/row_slider" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gutter"
+            android:background="@drawable/bg_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/row_padding">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dim_pass_through"
+                    android:textAppearance="@style/TextAppearance.Veil.Body" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/dim_pass_through_summary"
+                    android:textAppearance="@style/TextAppearance.Veil.Micro"
+                    android:textColor="@color/text_secondary" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/dim_pass_through"
+                style="@style/Widget.Veil.Switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/row_padding" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/gutter"
+            android:background="@drawable/bg_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/row_padding">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/dim_moon"
+                    android:textAppearance="@style/TextAppearance.Veil.Body" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/dim_moon_summary"
+                    android:textAppearance="@style/TextAppearance.Veil.Micro"
+                    android:textColor="@color/text_secondary" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/dim_moon"
+                style="@style/Widget.Veil.Switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/row_padding" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/dim_reset"
+            style="@style/Widget.Veil.SecondaryButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/page_padding"
+            android:minWidth="160dp"
+            android:text="@string/dim_reset"
+            android:textColor="@color/danger_text" />
+    </LinearLayout>
+</ScrollView>

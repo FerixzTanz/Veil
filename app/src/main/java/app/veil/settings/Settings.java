@@ -21,6 +21,7 @@ public final class Settings {
     public static final String DIM_BRIGHTNESS = "dim.brightness";
     public static final String DIM_WARMTH = "dim.warmth";
     public static final String DIM_PASS_THROUGH = "dim.pass_through";
+    public static final String MOON_SHOWN = "moon.shown";
     public static final String MOON_X = "moon.x";
     public static final String MOON_Y = "moon.y";
 
@@ -152,6 +153,15 @@ public final class Settings {
         store.remove(DIM_BRIGHTNESS);
         store.remove(DIM_WARMTH);
         store.remove(DIM_PASS_THROUGH);
+    }
+
+    /** The floating moon button is on screen. */
+    public boolean moonShown() {
+        return getBoolean(MOON_SHOWN, true);
+    }
+
+    public void setMoonShown(boolean shown) {
+        putBoolean(MOON_SHOWN, shown);
     }
 
     public int moonX() {

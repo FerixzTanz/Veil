@@ -12,7 +12,6 @@
     <string name="section_about">About</string>
 
     <string name="placeholder_airplay">The AirPlay receiver arrives in step 3: screen mirroring and sound from an iPhone, in a floating window that hides while the car is in gear or moving.</string>
-    <string name="placeholder_dim">The dim overlay arrives in step 2: an adjustable veil over the centre screen for night driving, with a floating moon button.</string>
     <string name="placeholder_network">The network page arrives in step 3: which network and address the receiver is on, and why the iPhone might not see it.</string>
 
     <string name="about_version">Veil %1$s (build %2$d)</string>
@@ -20,4 +19,30 @@
     <string name="about_components">Components and licences</string>
     <string name="about_licence_title">Licence</string>
     <string name="about_missing">%1$s is missing from this build.</string>
+
+    <string name="percent">%1$d%%</string>
+
+    <!-- Dim overlay -->
+    <string name="dim_on">Dim overlay</string>
+    <string name="dim_on_summary">A veil over the centre screen so maps and menus are less bright at night. Never drawn on the HUD or the instrument cluster.</string>
+    <string name="dim_opacity">Opacity</string>
+    <string name="dim_opacity_summary">How dark the veil is. 100 blocks touches.</string>
+    <string name="dim_brightness">Brightness</string>
+    <string name="dim_brightness_summary">0 is pure black. Higher is a lighter veil.</string>
+    <string name="dim_warmth">Warmth</string>
+    <string name="dim_warmth_summary">Higher shifts the veil toward amber.</string>
+    <string name="dim_pass_through">Pass touches through</string>
+    <string name="dim_pass_through_summary">On: the app underneath still receives taps. Off: the veil blocks them.</string>
+    <string name="dim_moon">Floating moon button</string>
+    <string name="dim_moon_summary">Tap to turn the veil on or off. Drag right or down for darker, left or up for lighter. Hold, then drag to move it. Orange when the veil is on.</string>
+    <string name="dim_reset">Reset</string>
+    <string name="dim_reset_message">Opacity 90%%, brightness 0, warmth 0, touches pass through. The veil stays on or off as it is.</string>
+    <string name="moon_turn_on">Turn the dim overlay on</string>
+    <string name="moon_turn_off">Turn the dim overlay off</string>
+
+    <!-- Overlay permission -->
+    <string name="overlay_needed_title">Allow Veil to draw over other apps</string>
+    <string name="overlay_needed_body">The veil and the moon button are windows over other apps. The head unit has to allow that once.</string>
+    <string name="overlay_needed_button">Allow</string>
+    <string name="overlay_needed_adb">This head unit has no settings page for it. From a computer with adb connected to the car, run:\n\n%1$s</string>
 </resources>

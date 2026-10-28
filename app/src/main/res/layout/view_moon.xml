@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The floating moon button. The badge shows the opacity while a drag changes it. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/moon_icon"
+        android:layout_width="@dimen/moon_size"
+        android:layout_height="@dimen/moon_size"
+        android:background="@drawable/bg_moon"
+        android:importantForAccessibility="no"
+        android:padding="14dp"
+        android:src="@drawable/ic_moon" />
+
+    <TextView
+        android:id="@+id/moon_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_moon_badge"
+        android:paddingStart="12dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="6dp"
+        android:textAppearance="@style/TextAppearance.Veil.Row"
+        android:visibility="gone" />
+</LinearLayout>

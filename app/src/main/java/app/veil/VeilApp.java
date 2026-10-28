@@ -2,6 +2,8 @@ package app.veil;
 
 import android.app.Application;
 
+import app.veil.dim.DimService;
+import app.veil.dim.Overlays;
 import app.veil.settings.PrefsStore;
 import app.veil.settings.Settings;
 
@@ -14,6 +16,10 @@ public class VeilApp extends Application {
     public void onCreate() {
         super.onCreate();
         settings = new Settings(new PrefsStore(this));
+        // The veil and the moon come back the way they were left.
+        if (Overlays.canDraw(this) && (settings.dimOn() || settings.moonShown())) {
+            DimService.sync(this);
+        }
     }
 
     public static Settings settings() {

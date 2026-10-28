@@ -13,6 +13,7 @@ that adds or removes a component.
 | Component | Source | Licence |
 |---|---|---|
 | Design shell (64 dp title bar, 280 dp section list, semantic day/night palette, six-step type scale, app-drawn dialogs: `VeilDialogs`, `themes.xml`, `type.xml`, `colors.xml`) | CAMCORDER (the author's Zeekr dashcam app) and [7xDash](https://github.com/zeekrownerapp-hub/7xdash-companion) | GPL-3.0 |
+| Dim overlay: `DimShade` (veil colour, Android 12 pass-through rules), the shade window in `DimService`, the moon drag that changes opacity | [7xDash](https://github.com/zeekrownerapp-hub/7xdash-companion) `DimShade`, `DimOverlayService`, `RecordingFloatingService` | GPL-3.0 |
 
 ## Libraries fetched by Gradle
 
@@ -30,7 +31,6 @@ that adds or removes a component.
 
 ## Coming in later steps
 
-The dim overlay (step 2) adapts `DimShade`, `DimOverlayService` and `AutoDim` from 7xDash (GPL-3.0).
 The AirPlay receiver (step 3) will add, as 7xDash's own `NOTICE.md` records:
 
 | Component | Source | Licence |

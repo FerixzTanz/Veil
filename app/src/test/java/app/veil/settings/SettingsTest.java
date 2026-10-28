@@ -31,6 +31,7 @@ public class SettingsTest {
         assertEquals(Settings.DIM_BRIGHTNESS_DEFAULT, settings.dimBrightness());
         assertEquals(Settings.DIM_WARMTH_DEFAULT, settings.dimWarmth());
         assertTrue(settings.dimPassThrough());
+        assertTrue(settings.moonShown());
         assertEquals(Settings.POSITION_UNSET, settings.moonX());
         assertEquals(Settings.POSITION_UNSET, settings.moonY());
     }

@@ -11,4 +11,6 @@
     <dimen name="section_row_height">64dp</dimen>
     <dimen name="section_icon_size">26dp</dimen>
     <dimen name="line">1px</dimen>
+    <dimen name="moon_size">56dp</dimen>
+    <dimen name="row_padding">20dp</dimen>
 </resources>

@@ -17,7 +17,7 @@ public enum Section {
     DIM(R.string.section_dim, R.drawable.ic_moon) {
         @Override
         public Fragment newFragment() {
-            return PlaceholderFragment.create(R.string.section_dim, R.string.placeholder_dim);
+            return new app.veil.dim.DimFragment();
         }
     },
     NETWORK(R.string.section_network, R.drawable.ic_wifi) {
