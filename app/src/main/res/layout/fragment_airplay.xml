@@ -85,6 +85,16 @@
                     android:layout_height="wrap_content"
                     android:textAppearance="@style/TextAppearance.Veil.Title" />
 
+                <!-- Why the iPhone's picture did not appear; shown only then -->
+                <TextView
+                    android:id="@+id/airplay_problem"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textAppearance="@style/TextAppearance.Veil.Caption"
+                    android:textColor="@color/energy_text"
+                    android:visibility="gone" />
+
                 <TextView
                     android:id="@+id/airplay_name"
                     android:layout_width="match_parent"

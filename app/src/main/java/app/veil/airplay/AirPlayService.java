@@ -91,6 +91,9 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     private static volatile int listenPort;
     /** True while Veil's own mDNS responder answers; false when the system one had to. */
     private static volatile boolean ownMdns;
+    /** Why the iPhone's picture has nowhere to go, for the AirPlay page; null when all is well. */
+    @Nullable
+    private static volatile String problem;
 
     private final Handler main = new Handler(Looper.getMainLooper());
     private Settings settings;
@@ -142,6 +145,16 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
 
     public static boolean ownMdns() {
         return live != null && ownMdns;
+    }
+
+    /**
+     * Why the last mirroring showed no window (no overlay permission, or the window was
+     * refused), or null. The AirPlay page shows it: on the 7X a toast from the service may not
+     * appear.
+     */
+    @Nullable
+    public static String problem() {
+        return live == null ? null : problem;
     }
 
     /**
@@ -220,6 +233,7 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
         live = this;
         settings = VeilApp.settings();
         promote();
+        AirPlayLog.init(this);
         window = new AirPlayWindow(this, settings, new AirPlayWindow.Listener() {
             @Override
             public void onSurface(Surface s) {
@@ -232,7 +246,6 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
                 restartReceiver("close tapped");
             }
         });
-        AirPlayLog.init(this);
         AirPlayLog.prune(this);
         net = new NetworkReport(this);
         WORK.post(this::startServer);
@@ -254,6 +267,7 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     public void onDestroy() {
         live = null;
         state = STATE_NONE;
+        problem = null;
         main.removeCallbacksAndMessages(null);
         if (window != null) {
             window.hide();
@@ -539,15 +553,23 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     private void mirrorStarted() {
         mirroring = true;
         AirPlayLog.i("mirroring started");
+        net.sessionStarted("mirroring");
+        setState(STATE_MIRRORING);
         if (!Overlays.canDraw(this)) {
             AirPlayLog.w("no permission to draw over other apps: no window");
-            Toast.makeText(this, R.string.airplay_need_overlay, Toast.LENGTH_LONG).show();
+            problem = getString(R.string.airplay_need_overlay);
+            Toast.makeText(this, problem, Toast.LENGTH_LONG).show();
             return;
         }
         window.show();
+        String refused = window.refused();
+        if (refused != null) {
+            problem = getString(R.string.airplay_window_refused, refused);
+            Toast.makeText(this, problem, Toast.LENGTH_LONG).show();
+            return;
+        }
+        problem = null;
         window.setPlaying(false);
-        net.sessionStarted("mirroring");
-        setState(STATE_MIRRORING);
         Toast.makeText(this, R.string.airplay_started, Toast.LENGTH_SHORT).show();
     }
 

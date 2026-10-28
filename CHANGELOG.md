@@ -2,6 +2,13 @@
 
 Each version's section becomes its GitHub release notes. Versions with a suffix are pre-releases.
 
+## 0.1.1-alpha (2026-10-28)
+
+- AirPlay: the floating window opens on the centre screen the same way the veil does, through
+  that display's own context. In 0.1.0 the iPhone said it was connected and the car showed
+  nothing. If the car still refuses the window, the AirPlay page says why under the status
+  line, because toasts from the receiver may not show on the head unit.
+
 ## 0.1.0-alpha (2026-10-28)
 
 First build to run on the car. Untested there: everything below needs an in-car check.

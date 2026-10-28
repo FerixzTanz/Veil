@@ -31,6 +31,7 @@ public class AirPlayFragment extends Fragment {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Settings settings;
     private TextView state;
+    private TextView problem;
     private TextView name;
     private TextView steps;
     private TextView addresses;
@@ -59,6 +60,7 @@ public class AirPlayFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         settings = VeilApp.settings();
         state = view.findViewById(R.id.airplay_state);
+        problem = view.findViewById(R.id.airplay_problem);
         name = view.findViewById(R.id.airplay_name);
         steps = view.findViewById(R.id.airplay_steps);
         addresses = view.findViewById(R.id.airplay_addresses);
@@ -97,6 +99,9 @@ public class AirPlayFragment extends Fragment {
         boolean on = AirPlayService.isRunning();
         String deviceName = AirPlayService.deviceName();
         state.setText(on ? stateText(AirPlayService.state(), deviceName) : getString(R.string.airplay_state_off));
+        String why = AirPlayService.problem();
+        problem.setText(why);
+        problem.setVisibility(why == null ? View.GONE : View.VISIBLE);
         name.setText(getString(R.string.airplay_name_line, deviceName));
         steps.setText(getString(R.string.airplay_steps, deviceName));
         List<String> where = AirPlayService.addresses();
