@@ -23,7 +23,8 @@ import java.util.Locale;
  * AirPlay's own log: {@code files/logs/airplay-yyyyMMdd.log} inside the app, one day per file,
  * rotated at 4 MB, every line written at once so the last line is the last thing that worked
  * if the native receiver takes the process down. The last lines are also kept in memory for
- * the Network page. From 7xDash (GPL-3.0), without the USB drive.
+ * the Network page, without the receiver's per-request chatter ({@link LogFilter}). From 7xDash
+ * (GPL-3.0), without the USB drive.
  */
 public final class AirPlayLog {
 
@@ -35,6 +36,7 @@ public final class AirPlayLog {
     private static final SimpleDateFormat TIME = new SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.US);
     private static final SimpleDateFormat DAY = new SimpleDateFormat("yyyyMMdd", Locale.US);
     private static final ArrayDeque<String> RECENT = new ArrayDeque<>(KEEP_LINES);
+    private static final LogFilter FILTER = new LogFilter();
     private static Context app;
 
     private AirPlayLog() {
@@ -48,26 +50,20 @@ public final class AirPlayLog {
 
     public static void i(String message) {
         Log.i(TAG, message);
-        write("I", message);
+        write("I", message, true);
     }
 
     public static void w(String message) {
         Log.w(TAG, message);
-        write("W", message);
+        write("W", message, true);
     }
 
     /** From the native receiver; already in logcat at debug. */
     static void nativeLine(String message) {
         Log.d(TAG + "Native", message);
-        write("N", message);
-    }
-
-    /**
-     * The iPhone's keep-alive, a line every two seconds while it is connected: kept in the file,
-     * left off the Network page so the lines that matter fit.
-     */
-    static boolean isKeepAlive(String line) {
-        return line.contains("url = /feedback,");
+        synchronized (LOCK) {
+            write("N", message, !FILTER.hide(message));
+        }
     }
 
     /** The newest lines, oldest first. */
@@ -77,14 +73,17 @@ public final class AirPlayLog {
         }
     }
 
-    private static void write(String level, String message) {
+    /** {@code page}: also keep it for the Network page. */
+    private static void write(String level, String message, boolean page) {
         synchronized (LOCK) {
             Date now = new Date();
             String line = TIME.format(now) + " " + level + " " + Thread.currentThread().getName() + ": " + message;
-            if (RECENT.size() == KEEP_LINES) {
-                RECENT.removeFirst();
+            if (page) {
+                if (RECENT.size() == KEEP_LINES) {
+                    RECENT.removeFirst();
+                }
+                RECENT.addLast(line);
             }
-            RECENT.addLast(line);
             if (app == null) {
                 return;
             }

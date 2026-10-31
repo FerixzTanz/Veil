@@ -2,6 +2,15 @@
 
 Each version's section becomes its GitHub release notes. Versions with a suffix are pre-releases.
 
+## Unreleased
+
+- Network page log: while a video is cast the iPhone polls the receiver several times a second
+  (`/playback-info`, `/getProperty`), about a dozen log lines each, so in 0.2.0 the page showed
+  only that and the lines saying why a cast failed were gone within seconds. Polling requests
+  and the receiver's per-request plumbing are now left off the page (the log file keeps
+  everything); other requests show their address, headers and body, and Veil's own `cast:` lines
+  stay. The `/feedback` filter in 0.1.1 removed only one line of each keep-alive.
+
 ## 0.2.0-alpha (2026-10-28)
 
 - Video casting: tap the AirPlay button in a video's player on the iPhone and choose Veil. Only
