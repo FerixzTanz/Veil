@@ -13,6 +13,7 @@ that adds or removes a component.
 | Component | Source | Licence |
 |---|---|---|
 | Design shell (64 dp title bar, 280 dp section list, semantic day/night palette, six-step type scale, app-drawn dialogs: `VeilDialogs`, `themes.xml`, `type.xml`, `colors.xml`) | CAMCORDER (the author's Zeekr dashcam app) and [7xDash](https://github.com/zeekrownerapp-hub/7xdash-companion) | GPL-3.0 |
+| Diagnostics export and Send to phone (`DiagnosticsExport`, the `app.veil.share` package: QR code, one-file web server, address choice) | CAMCORDER `DiagnosticsJson`, `PhoneShare`, `FileShareServer`, `QrCode`, `LocalNetwork` | GPL-3.0 |
 | Dim overlay: `DimShade` (veil colour, Android 12 pass-through rules), the shade window in `DimService`, the moon drag that changes opacity, the clock window of `AutoDim` | [7xDash](https://github.com/zeekrownerapp-hub/7xdash-companion) `DimShade`, `DimOverlayService`, `RecordingFloatingService` | GPL-3.0 |
 
 ## AirPlay receiver (`app/src/main/cpp` and `app.veil.airplay`)
@@ -41,6 +42,8 @@ decoded with MediaCodec); OpenSSL is downloaded from the official release and ha
 | Oboe 1.9.3 (AirPlay audio output) | Apache License 2.0 |
 | AndroidX Media3 ExoPlayer + HLS 1.5.1 (video cast from an app's AirPlay button) | Apache License 2.0 |
 | OkHttp 4.12.0 (cast downloads routed over the car's Wi-Fi) | Apache License 2.0 |
+| NanoHTTPD 2.3.1 (Send to phone: serves the export while the dialog is open) | BSD 3-Clause |
+| ZXing core 3.5.1 (Send to phone: the QR code) | Apache License 2.0 |
 | JUnit 4 (tests only, not shipped) | Eclipse Public License 1.0 |
 
 ## Icons

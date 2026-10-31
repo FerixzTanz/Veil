@@ -5,6 +5,7 @@
     <string name="action_ok">OK</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_back">Back</string>
+    <string name="action_close">Close</string>
 
     <string name="section_airplay">AirPlay</string>
     <string name="section_dim">Dim overlay</string>
@@ -100,4 +101,30 @@
     <string name="net_networks_title">The car\'s networks</string>
     <string name="net_log_title">AirPlay log, last lines</string>
     <string name="net_log_empty">Nothing yet. The full log is in the app\'s files under logs/.</string>
+    <string name="net_export_title">Export for diagnosis</string>
+    <string name="net_export_summary">One .json file with the full AirPlay log of today and yesterday (nothing left out or cut), the receiver\'s state, the car\'s networks and Veil\'s version. Send it to your phone, or save it on the car.</string>
+    <string name="net_export_send">Send to phone</string>
+    <string name="net_export_save">Save .json</string>
+    <string name="net_export_saved_title">Saved</string>
+    <string name="net_export_saved">%1$s\n\n%2$s. Veil keeps the last five exports.</string>
+    <string name="net_export_failed">Could not write the export: %1$s</string>
+
+    <!-- Send to phone -->
+    <string name="share_title">Send to phone</string>
+    <string name="share_steps">Scan the QR code with your phone\'s camera. A page opens in the browser: tap Download to save the file.</string>
+    <string name="share_address">%1$s\n%2$s · %3$s</string>
+    <string name="share_endpoint">%1$s on %2$s</string>
+    <string name="share_keep_open">Keep this open until the file is saved. It closes by itself after ten minutes.</string>
+    <string name="share_other_address">Try another address</string>
+    <string name="share_failed">Could not start sending. Try again.</string>
+    <string name="share_qr_failed">Could not draw the QR code. Type the address below into the phone\'s browser instead.</string>
+    <string name="share_no_network_title">No network the phone can reach</string>
+    <string name="share_no_network_message">The car is not on any Wi-Fi network and its hotspot is off, so a phone cannot reach it. Turn on the iPhone\'s Personal Hotspot and join it from the car\'s Wi-Fi settings, then try again.\n\nThe car\'s links, all internal: %1$s</string>
+    <string name="share_status_waiting">Waiting for the phone. It must be on the same network as the car (%1$s).</string>
+    <string name="share_status_unreachable">The phone has not reached the car (%1$s). Put the phone on the same Wi-Fi as the car, or join the car to the iPhone\'s Personal Hotspot. If the car has more than one address, try another. If it still fails, turn off the phone\'s mobile data and scan again: some phones send local addresses over mobile data when the Wi-Fi has no internet.</string>
+    <string name="share_status_connected">Phone connected ✓ Tap Download on the phone.</string>
+    <string name="share_status_sending">Sending…</string>
+    <string name="share_status_done">Sent ✓ You can close this.</string>
+    <string name="share_status_stopped">Sending stopped before the end. Tap Download on the phone again.</string>
+    <string name="share_status_wrong_link">The phone reached the car, but the link was incomplete. Scan the code again.</string>
 </resources>

@@ -161,6 +161,10 @@ dependencies {
     implementation(libs.media3.exoplayer.hls)
     implementation(libs.media3.datasource.okhttp)
     implementation(libs.okhttp)
+    // Send to phone (diagnostics export): a one-file web server while the dialog is open,
+    // and the QR code the phone scans. As in CAMCORDER
+    implementation(libs.nanohttpd)
+    implementation(libs.zxing.core)
 
     testImplementation(libs.junit)
 }

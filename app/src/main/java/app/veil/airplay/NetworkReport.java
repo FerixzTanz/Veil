@@ -36,6 +36,10 @@ public final class NetworkReport {
         String describe();
     }
 
+    /** Where the iPhone last AirPlayed from; null until one has. */
+    @Nullable
+    private static volatile String lastIphone;
+
     private final Context context;
     private final ConnectivityManager cm;
     private ConnectivityManager.NetworkCallback watcher;
@@ -228,12 +232,19 @@ public final class NetworkReport {
         return s.replace("\"", "");
     }
 
+    /** The iPhone's last address, for the export and the Send to phone address; null if none yet. */
+    @Nullable
+    public static String lastIphone() {
+        return lastIphone;
+    }
+
     /** "Remote: 192.168.5.23" from the receiver: say where the iPhone is relative to the car. */
     void iphoneAt(String address) {
         String clean = address.trim();
         if (clean.startsWith("::ffff:")) {
             clean = clean.substring(7);
         }
+        lastIphone = clean;
         String where = "not on any of the car's networks";
         try {
             InetAddress target = InetAddress.getByName(clean);

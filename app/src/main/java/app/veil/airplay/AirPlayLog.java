@@ -116,6 +116,17 @@ public final class AirPlayLog {
         return dir;
     }
 
+    /** Every log file there is, for the diagnostics export. */
+    static List<File> files(Context context) {
+        File dir = dir(context);
+        File[] files = dir == null ? null : dir.listFiles((d, name) -> name.startsWith("airplay-"));
+        List<File> out = new ArrayList<>();
+        if (files != null) {
+            Collections.addAll(out, files);
+        }
+        return out;
+    }
+
     /** Where the log is going right now, for the first line. */
     static String where() {
         Context context = app;

@@ -4,6 +4,16 @@ Each version's section becomes its GitHub release notes. Versions with a suffix 
 
 ## Unreleased
 
+- Network page, "Export for diagnosis": one .json with today's and yesterday's AirPlay log
+  files whole (nothing left out or cut), the receiver's state, the car's networks, where the
+  iPhone last connected from, the AirPlay settings and the versions. **Send to phone** shows a
+  QR code: scan it with the phone's camera and tap Download. The address the iPhone AirPlays
+  on comes first, "Try another address" offers the others, and the dialog says when the phone
+  has connected, is downloading or has the file, or how to fix it when the phone does not
+  arrive within 20 s. The small file server runs only while the dialog is open (ten minutes at
+  most) and the link carries a random key. **Save .json** writes it to
+  `Android/data/app.veil/files/exports` on the car; the last five are kept. From CAMCORDER's
+  diagnostics export and Send to phone (NanoHTTPD, ZXing).
 - Network page log: while a video is cast the iPhone polls the receiver several times a second
   (`/playback-info`, `/getProperty`), about a dozen log lines each, so in 0.2.0 the page showed
   only that and the lines saying why a cast failed were gone within seconds. Polling requests

@@ -34,7 +34,7 @@ import java.util.Map;
  * <p>From 7xDash, ported from jqssun/android-airplay-server's UsbMdnsAdvertiser (both GPL-3.0), cut down: no
  * probing, one socket for all networks, rescans the networks every few seconds.</p>
  */
-final class MdnsResponder {
+public final class MdnsResponder {
 
     /** One service to announce: instance name, "_airplay._tcp", port, TXT. */
     static final class Service {
@@ -146,7 +146,7 @@ final class MdnsResponder {
     }
 
     /** True for networks an iPhone could be on; false for the car's internal links. */
-    static boolean answersOn(String name) {
+    public static boolean answersOn(String name) {
         String n = name.toLowerCase(Locale.US);
         return !(n.startsWith("vlan") || n.startsWith("veth") || n.startsWith("dummy")
                 || n.startsWith("rmnet") || n.startsWith("ccmni") || n.startsWith("lo")
