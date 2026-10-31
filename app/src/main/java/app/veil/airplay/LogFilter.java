@@ -10,8 +10,9 @@ import java.util.regex.Pattern;
  * {@code /playback-info} and {@code /getProperty} several times a second besides the
  * {@code /feedback} keep-alive, so in 0.2.0 the page's last lines were only that, and the lines
  * saying why a cast failed had gone from memory within seconds. Left out: the httpd plumbing of
- * every request, and every line of a polling request. A request that matters keeps its
- * "request received" line with its address, its headers and body.</p>
+ * every request, every line of a polling request, and the playlists YouTube hands over (hundreds
+ * of lines each). A request that matters keeps its "request received" line with its address,
+ * its headers and body.</p>
  *
  * <p>Native lines arrive one at a time from the receiver's single httpd thread, in order. Not
  * thread-safe: {@link AirPlayLog} calls it under its lock.</p>
@@ -66,6 +67,7 @@ final class LogFilter {
                 || CONNECTION_ROW.matcher(m).matches()
                 || m.equals("conn_request")
                 || m.startsWith("Handling request ")
-                || m.startsWith("Request not complete");
+                || m.startsWith("Request not complete")
+                || m.startsWith("begin FCUP Response data");
     }
 }

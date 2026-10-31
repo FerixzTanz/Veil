@@ -66,4 +66,13 @@ public class LogFilterTest {
         assertFalse(f.hide("Connection closed on socket 139"));
         assertFalse(f.hide("master playlist slimmed: 19 -> 6 video, 4 -> 2 audio"));
     }
+
+    @Test
+    public void playlistsFromTheIphoneAreLeftOutButTheirCountsShow() {
+        LogFilter f = new LogFilter();
+        f.hide("httpd request received on socket 139, connection 1, method = POST, url = /action,"
+                + " protocol = HTTP/1.1");
+        assertTrue(f.hide("begin FCUP Response data:\n#EXTM3U\n#EXT-X-VERSION:7\nend FCUP Response data"));
+        assertFalse(f.hide("\nmlhls://localhost/itag/234/mediadata.m3u8:\nreceived media playlist has   120 chunks"));
+    }
 }
