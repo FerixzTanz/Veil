@@ -2,7 +2,7 @@
 
 Each version's section becomes its GitHub release notes. Versions with a suffix are pre-releases.
 
-## Unreleased
+## 0.2.1-alpha (2026-10-31)
 
 - Network page, "Export for diagnosis": one .json with today's and yesterday's AirPlay log
   files whole (nothing left out or cut), the receiver's state, the car's networks, where the
