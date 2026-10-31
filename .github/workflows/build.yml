@@ -7,6 +7,11 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      release:
+        description: Publish this build as a release (tag v<versionName> on this commit)
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -98,8 +103,9 @@ jobs:
           path: ${{ steps.apk.outputs.path }}
           if-no-files-found: error
 
-      # A v* tag publishes a release. The notes are that version's section of CHANGELOG.md,
-      # and a version with a suffix (-alpha, -beta, -rc1) is a pre-release.
+      # A v* tag publishes a release, and so does a run started by hand with "release" ticked,
+      # which tags v<versionName> on the commit it built. The notes are that version's section
+      # of CHANGELOG.md, and a version with a suffix (-alpha, -beta, -rc1) is a pre-release.
       - name: Check the tag matches versionName
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
@@ -111,7 +117,7 @@ jobs:
           fi
 
       - name: Build release notes
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release
         run: |
           set -euo pipefail
           VERSION="${{ steps.apk.outputs.version }}"
@@ -127,9 +133,11 @@ jobs:
           cat RELEASE_NOTES.md
 
       - name: Publish release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.apk.outputs.version }}
+          target_commitish: ${{ github.sha }}
           files: ${{ steps.apk.outputs.path }}
           prerelease: ${{ contains(steps.apk.outputs.version, '-') }}
           draft: false
