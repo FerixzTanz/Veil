@@ -18,6 +18,10 @@ import android.view.Surface;
  * native audio decoder does. Collecting them only when the next frame came in left the picture
  * as many frames behind as the decoder holds, and an iPhone sends frames only while its screen
  * changes, so the end of every movement waited for the next touch.</p>
+ *
+ * <p>Every {@link FrameStats#PERIOD_MS} while frames come in, one log line says how many came,
+ * how many were shown and dropped, and the longest gaps, so a jittery picture can be told
+ * apart: uneven arrival (the Wi-Fi) or uneven showing (the car's decoder).</p>
  */
 final class MirrorDecoder {
 
@@ -36,6 +40,7 @@ final class MirrorDecoder {
     private int width;
     private int height;
     private boolean firstQueued;
+    private final FrameStats stats = new FrameStats();
 
     void setSize(int w, int h) {
         synchronized (lock) {
@@ -77,7 +82,14 @@ final class MirrorDecoder {
                 }
             }
             try {
-                queue(data, ntpTimeNs);
+                long t0 = System.nanoTime();
+                boolean queued = queue(data, ntpTimeNs);
+                long now = System.nanoTime();
+                stats.arrived(now / 1_000_000L, (now - t0) / 1_000_000L, queued);
+                String line = stats.report(now / 1_000_000L);
+                if (line != null) {
+                    AirPlayLog.i(line);
+                }
             } catch (Exception e) {
                 AirPlayLog.w("decoder error, resetting: " + e);
                 stopCodec();
@@ -128,6 +140,7 @@ final class MirrorDecoder {
                 int idx = c.dequeueOutputBuffer(info, SHOW_WAIT_US);
                 if (idx >= 0) {
                     c.releaseOutputBuffer(idx, true);
+                    stats.shown(System.nanoTime() / 1_000_000L);
                 }
             }
         } catch (IllegalStateException e) {
@@ -135,27 +148,33 @@ final class MirrorDecoder {
         }
     }
 
-    private void queue(byte[] data, long ntpTimeNs) {
+    /** False when the decoder had no room for it: the frame is dropped. */
+    private boolean queue(byte[] data, long ntpTimeNs) {
         int retries = firstQueued ? FEED_RETRIES : FIRST_FEED_RETRIES;
         for (int i = 0; i < retries; i++) {
             int idx = codec.dequeueInputBuffer(FEED_WAIT_US);
             if (idx >= 0) {
                 java.nio.ByteBuffer buf = codec.getInputBuffer(idx);
                 if (buf == null) {
-                    return;
+                    return false;
                 }
                 buf.clear();
                 buf.put(data);
                 codec.queueInputBuffer(idx, 0, data.length, ntpTimeNs / 1000, 0);
                 firstQueued = true;
-                return;
+                return true;
             }
         }
+        return false;
     }
 
     private void stopCodec() {
         if (codec == null) {
             return;
+        }
+        String line = stats.flush();
+        if (line != null) {
+            AirPlayLog.i(line);
         }
         // the shower must be off the codec before it stops
         showing = false;
@@ -172,6 +191,77 @@ final class MirrorDecoder {
         }
         codec.release();
         codec = null;
+    }
+
+    /**
+     * Counts for the periodic mirroring line. Arrivals come from the native thread, shown
+     * frames from the shower thread.
+     */
+    static final class FrameStats {
+        static final long PERIOD_MS = 10_000L;
+
+        private long start = -1;
+        private int in;
+        private int dropped;
+        private int shown;
+        private long lastIn = -1;
+        private long lastShown = -1;
+        private long maxInGap;
+        private long maxShownGap;
+        private long maxWait;
+
+        synchronized void arrived(long nowMs, long waitMs, boolean queued) {
+            if (start < 0) {
+                start = nowMs;
+            }
+            in++;
+            if (!queued) {
+                dropped++;
+            }
+            if (lastIn >= 0) {
+                maxInGap = Math.max(maxInGap, nowMs - lastIn);
+            }
+            lastIn = nowMs;
+            maxWait = Math.max(maxWait, waitMs);
+        }
+
+        synchronized void shown(long nowMs) {
+            shown++;
+            if (lastShown >= 0) {
+                maxShownGap = Math.max(maxShownGap, nowMs - lastShown);
+            }
+            lastShown = nowMs;
+        }
+
+        /** The line once a period has passed, then counting starts again; else null. */
+        synchronized String report(long nowMs) {
+            return start >= 0 && nowMs - start >= PERIOD_MS ? line(nowMs) : null;
+        }
+
+        /** What is left when the decoder stops; null if nothing came. */
+        synchronized String flush() {
+            String out = in > 0 ? line(lastIn) : null;
+            start = -1;
+            lastIn = -1;
+            lastShown = -1;
+            return out;
+        }
+
+        private String line(long nowMs) {
+            long ms = Math.max(1, nowMs - start);
+            String out = String.format(java.util.Locale.US,
+                    "mirror %.1f s: %d frames in (%.1f/s, longest gap %d ms), %d shown (longest gap %d ms),"
+                            + " %d dropped, decoder wait up to %d ms",
+                    ms / 1000.0, in, in * 1000.0 / ms, maxInGap, shown, maxShownGap, dropped, maxWait);
+            start = nowMs;
+            in = 0;
+            dropped = 0;
+            shown = 0;
+            maxInGap = 0;
+            maxShownGap = 0;
+            maxWait = 0;
+            return out;
+        }
     }
 
     /** IDR slice (5) or SPS (7) after an Annex-B start code. */

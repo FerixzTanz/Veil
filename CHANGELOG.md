@@ -2,6 +2,19 @@
 
 Each version's section becomes its GitHub release notes. Versions with a suffix are pre-releases.
 
+## 0.2.2-alpha (2026-10-31)
+
+- YouTube casting stopped a few seconds after the picture came (seen in the car's export,
+  0.2.1). The receiver answers every connection on one thread, and after the last playlist it
+  held that thread up to 10 s waiting for the car's player to be ready. The player reads its
+  playlists from that same receiver, so it waited out all 10 s; the iPhone's questions went
+  unanswered meanwhile, and it gave up on the cast for sound only just as the video started.
+  The receiver no longer waits when the player reads from it (YouTube); direct video links,
+  which the player fetches itself, still wait as before.
+- Mirroring: every 10 s the AirPlay log says how many frames came in and were shown or
+  dropped, with the longest gaps, so a jittery picture can be traced to the Wi-Fi or to the
+  car's decoder.
+
 ## 0.2.1-alpha (2026-10-31)
 
 - Network page, "Export for diagnosis": one .json with today's and yesterday's AirPlay log

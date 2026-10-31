@@ -303,6 +303,11 @@ static bool _check_register(void *cls, const char *pk_str) {
 
 /* --- AirPlay Video (HLS) playback callbacks --- */
 
+/* the receiver's own playlist proxy (http://localhost:<port>/master.m3u8) */
+static int _is_local_playlist(const char *location) {
+    return location && (!strncmp(location, "http://localhost:", 17) || !strncmp(location, "http://127.0.0.1:", 17));
+}
+
 static void _video_play(void *cls, const char *location, const float start_position) {
     android_callback_ctx_t *ctx = (android_callback_ctx_t *)cls;
     LOGI("video_play: %s @ %.2fs", location ? location : "(null)", start_position);
@@ -317,6 +322,12 @@ static void _video_play(void *cls, const char *location, const float start_posit
     (*env)->DeleteLocalRef(env, jloc);
     /* self-driven senders (macOS) latch their scrubber timeline at /play; hold the response
        until the player reports ready so that read must carry the real duration */
+    /* Veil: not when the player reads the playlists from this receiver (YouTube's mlhls, on
+       localhost). This runs on the httpd thread, the only one serving every connection, so
+       the player's playlist requests waited out the full 10 s with it, the iPhone's polls went
+       unanswered, and the iPhone dropped the cast for sound only just as the picture came
+       (car log, 2026-10-31: play at 14:30:45.5, nothing answered until 14:30:55.5) */
+    if (_is_local_playlist(location)) return;
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
     ts.tv_sec += 10; // hold for max 10s
