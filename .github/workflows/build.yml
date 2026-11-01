@@ -12,12 +12,17 @@ on:
         description: Publish this build as a release (tag v<versionName> on this commit)
         type: boolean
         default: false
+      latest:
+        description: Instead of building, mark this existing release tag (e.g. v0.2.2-alpha) as the latest full release
+        type: string
+        default: ''
 
 permissions:
   contents: write
 
 jobs:
   build:
+    if: inputs.latest == '' || inputs.latest == null
     runs-on: ubuntu-latest
 
     steps:
@@ -143,3 +148,18 @@ jobs:
           draft: false
           name: ${{ steps.apk.outputs.version }}
           body_path: RELEASE_NOTES.md
+
+  # Run by hand with "latest" set: the release under that tag stops being a pre-release and
+  # becomes the one https://github.com/<owner>/<repo>/releases/latest points to. Nothing is built.
+  mark-latest:
+    if: inputs.latest != '' && inputs.latest != null
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark the release as latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.latest }}
+        run: |
+          set -euo pipefail
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --prerelease=false --latest
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json tagName,isPrerelease,url
