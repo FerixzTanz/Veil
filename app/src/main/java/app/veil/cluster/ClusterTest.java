@@ -43,8 +43,8 @@ import app.veil.settings.Settings;
  */
 public final class ClusterTest {
 
-    /** How long the pattern stays. The interface connection takes about a second of it. */
-    public static final long SHOW_MS = 8_000L;
+    /** How long the pattern stays: long enough to photograph the cluster. */
+    public static final long SHOW_MS = 20_000L;
     private static final long CHECK_MS = 1_000L;
     private static final long START_AFTER_REQUEST_MS = 500L;
 
@@ -75,6 +75,14 @@ public final class ClusterTest {
      * has already checked the gear.
      */
     public static void start(Context context, Listener listener) {
+        start(context, true, listener);
+    }
+
+    /**
+     * @param askProjection also ask the head unit to project (the REQUEST / START / STOP calls);
+     *                      off shows the window alone, to tell whether the request matters
+     */
+    public static void start(Context context, boolean askProjection, Listener listener) {
         if (running) {
             return;
         }
@@ -115,12 +123,12 @@ public final class ClusterTest {
             finish(app, "Android refused the window on the cluster screen: " + ClusterProjection.describe(t), listener);
             return;
         }
-        ClusterLog.i("window opened on " + where);
+        ClusterLog.i("window opened on " + where + (askProjection ? "; asking to project" : "; no projection request"));
         current = p;
         final Presentation shown = p;
 
         // The window is up: connect the cluster interface off the main thread, then ask to project.
-        new Thread(() -> {
+        if (askProjection) new Thread(() -> {
             StringBuilder why = new StringBuilder();
             ClusterProjection cp = ClusterProjection.connect(app, why);
             MAIN.post(() -> {
@@ -160,7 +168,8 @@ public final class ClusterTest {
                 finish(app, "Android opened the window but closed it again within a second.", listener);
                 return;
             }
-            lastResult = "Pattern on " + where + ".\nLook at the cluster.";
+            lastResult = "Pattern on " + where + (askProjection ? "" : ", no projection request")
+                    + ".\nLook at the cluster.";
             listener.onResult(lastResult);
         }, CHECK_MS);
 
@@ -266,48 +275,66 @@ public final class ClusterTest {
 
     // ------------------------------------------------------------------ the pattern
 
-    /** Fills the screen: a translucent dark ground, an orange frame, thirds, LEFT / CENTRE / RIGHT. */
+    /**
+     * A measuring grid over the whole screen: a translucent dark ground, a line every
+     * {@link #CELL_X} px across and {@link #CELL_Y} px down, each cell labelled with the x,y of its
+     * top-left corner, and LEFT / CENTRE / RIGHT faintly behind. A photo of the cluster then says
+     * exactly which rectangle of the screen it shows.
+     */
     private static final class Pattern extends View {
+        private static final int CELL_X = 160;
+        private static final int CELL_Y = 134;
         private static final String[] ZONES = {"LEFT", "CENTRE", "RIGHT"};
         private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint stroke = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint bold = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint label = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint small = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint zone = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF rect = new RectF();
 
         Pattern(Context context) {
             super(context);
             fill.setColor(0xB0000000);
-            stroke.setStyle(Paint.Style.STROKE);
-            stroke.setStrokeWidth(8f);
-            stroke.setColor(0xFFF0622D);
+            line.setStyle(Paint.Style.STROKE);
+            line.setStrokeWidth(2f);
+            line.setColor(0x99FFFFFF);
+            bold.setStyle(Paint.Style.STROKE);
+            bold.setStrokeWidth(6f);
+            bold.setColor(0xFFF0622D);
             label.setColor(0xFFFFFFFF);
-            label.setTextAlign(Paint.Align.CENTER);
-            label.setTextSize(96f);
-            label.setFakeBoldText(true);
-            small.setColor(0xFFF0622D);
-            small.setTextAlign(Paint.Align.CENTER);
-            small.setTextSize(44f);
+            label.setTextSize(26f);
+            zone.setColor(0x60F0622D);
+            zone.setTextAlign(Paint.Align.CENTER);
+            zone.setTextSize(140f);
+            zone.setFakeBoldText(true);
         }
 
         @Override
         protected void onDraw(Canvas canvas) {
             int w = getWidth();
             int h = getHeight();
-            float inset = stroke.getStrokeWidth() / 2f;
-            rect.set(inset, inset, w - inset, h - inset);
+            rect.set(0, 0, w, h);
             canvas.drawRect(rect, fill);
-            canvas.drawRect(rect, stroke);
             float third = w / 3f;
-            canvas.drawLine(third, 0f, third, h, stroke);
-            canvas.drawLine(2f * third, 0f, 2f * third, h, stroke);
-            Paint.FontMetrics fm = label.getFontMetrics();
+            Paint.FontMetrics fm = zone.getFontMetrics();
             float mid = h / 2f - (fm.ascent + fm.descent) / 2f;
             for (int i = 0; i < 3; i++) {
-                float cx = third * i + third / 2f;
-                canvas.drawText(ZONES[i], cx, mid, label);
-                canvas.drawText("Veil test", cx, mid + 80f, small);
+                canvas.drawText(ZONES[i], third * i + third / 2f, mid, zone);
             }
+            // every 4th vertical line (640 px) is orange, the rest white
+            for (int x = 0; x < w; x += CELL_X) {
+                canvas.drawLine(x, 0, x, h, (x / CELL_X) % 4 == 0 ? bold : line);
+            }
+            for (int y = 0; y < h; y += CELL_Y) {
+                canvas.drawLine(0, y, w, y, line);
+            }
+            for (int x = 0; x < w; x += CELL_X) {
+                for (int y = 0; y < h; y += CELL_Y) {
+                    canvas.drawText(x + "," + y, x + 6, y + 30, label);
+                }
+            }
+            rect.set(3, 3, w - 3, h - 3);
+            canvas.drawRect(rect, bold);
         }
     }
 }

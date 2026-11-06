@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.button.MaterialButton;
@@ -27,6 +28,7 @@ public class ClusterFragment extends Fragment {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private MaterialButton run;
+    private SwitchCompat askProjection;
     private TextView result;
     private TextView log;
 
@@ -48,6 +50,8 @@ public class ClusterFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         run = view.findViewById(R.id.cluster_run);
+        askProjection = view.findViewById(R.id.cluster_ask_projection);
+        askProjection.setChecked(true);
         result = view.findViewById(R.id.cluster_result);
         log = view.findViewById(R.id.cluster_log);
         run.setOnClickListener(v -> checkGearThenRun());
@@ -82,9 +86,10 @@ public class ClusterFragment extends Fragment {
                     return;
                 }
                 run.setEnabled(true);
+                boolean ask = askProjection.isChecked();
                 if ("P".equals(gear)) {
                     ClusterLog.i("gear P");
-                    ClusterTest.start(requireContext(), this::onResult);
+                    ClusterTest.start(requireContext(), ask, this::onResult);
                 } else if (gear != null) {
                     ClusterLog.i("gear " + gear + ": not running");
                     result.setText(getString(R.string.cluster_need_park, gear));
@@ -93,7 +98,7 @@ public class ClusterFragment extends Fragment {
                     VeilDialogs.confirm(requireContext(), getString(R.string.cluster_gear_unknown_title),
                             getString(R.string.cluster_gear_unknown_body),
                             getString(R.string.cluster_gear_unknown_action),
-                            () -> ClusterTest.start(requireContext(), this::onResult));
+                            () -> ClusterTest.start(requireContext(), ask, this::onResult));
                 }
             });
         }, "VeilCluster-gear").start();

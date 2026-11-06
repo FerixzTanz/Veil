@@ -2,6 +2,15 @@
 
 Each version's section becomes its GitHub release notes. Versions with a suffix are pre-releases.
 
+## 0.3.1-alpha (2026-11-06)
+
+- Driver display test, second round, after 0.3.0 put its RIGHT label in the cluster's
+  navigation window on the first try. The pattern is now a measuring grid: a line every 160 px
+  across and 134 px down, each cell labelled with its pixel position, so a photo of the cluster
+  gives the exact rectangle it shows. It stays for 20 seconds. A new switch, Ask the head unit to
+  project (on by default), runs the test with or without the projection request, to tell whether
+  the request is needed at all.
+
 ## 0.3.0-alpha (2026-11-06)
 
 - New Driver display page with a test for showing something on the instrument cluster. The
