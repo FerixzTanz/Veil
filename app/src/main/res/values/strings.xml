@@ -8,6 +8,7 @@
 
     <string name="section_airplay">AirPlay</string>
     <string name="section_dim">Dim overlay</string>
+    <string name="section_cluster">Driver display</string>
     <string name="section_network">Network</string>
     <string name="section_about">About</string>
 
@@ -83,6 +84,20 @@
     <string name="airplay_notification">Waiting for iPhone screen mirroring</string>
     <string name="airplay_address_title">Receiver address</string>
     <string name="airplay_address_test">Can\'t connect? Open http://%1$s/info in Safari on the iPhone (the page may stay blank). The Network page shows whether it reached the car.</string>
+
+    <!-- Driver display page -->
+    <string name="cluster_test_title">Test the driver display</string>
+    <string name="cluster_test_summary">Covers the instrument cluster\'s screen with a pattern labelled LEFT, CENTRE and RIGHT for 8 seconds, and asks the head unit to show it through Zeekr\'s own cluster interface, the way the car\'s navigation does. Projection is stopped when the test ends. Runs only in P. If any part of the pattern appears on the cluster, Veil can put things there.</string>
+    <string name="cluster_run">Run the test</string>
+    <string name="cluster_checking_gear">Reading the gear…</string>
+    <string name="cluster_need_park">The car is in %1$s. Shift to P and try again.</string>
+    <string name="cluster_gear_unknown_title">Gear could not be read</string>
+    <string name="cluster_gear_unknown_body">Veil cannot tell whether the car is parked. The test covers the cluster for 8 seconds. Continue only if the car is in P.</string>
+    <string name="cluster_gear_unknown_action">The car is in P</string>
+    <string name="cluster_result_title">Result</string>
+    <string name="cluster_safety">No root, no ADB and no system setting: an ordinary window on the cluster screen plus one request to the head unit, reversed when the test ends. If the app is stopped mid-test, the next start sends the stop. Worst case, the cluster\'s navigation area shows the pattern until the car\'s own navigation takes it back or the head unit restarts.</string>
+    <string name="cluster_log_title">Driver display log, last lines</string>
+    <string name="cluster_log_empty">Nothing yet. The full log is in the app\'s files under logs/.</string>
 
     <!-- Network page -->
     <string name="net_receiver_title">Receiver</string>

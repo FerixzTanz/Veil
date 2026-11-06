@@ -20,6 +20,12 @@ public enum Section {
             return new app.veil.dim.DimFragment();
         }
     },
+    CLUSTER(R.string.section_cluster, R.drawable.ic_cluster) {
+        @Override
+        public Fragment newFragment() {
+            return new app.veil.cluster.ClusterFragment();
+        }
+    },
     NETWORK(R.string.section_network, R.drawable.ic_wifi) {
         @Override
         public Fragment newFragment() {

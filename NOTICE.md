@@ -15,6 +15,14 @@ that adds or removes a component.
 | Design shell (64 dp title bar, 280 dp section list, semantic day/night palette, six-step type scale, app-drawn dialogs: `VeilDialogs`, `themes.xml`, `type.xml`, `colors.xml`) | CAMCORDER (the author's Zeekr dashcam app) and [7xDash](https://github.com/zeekrownerapp-hub/7xdash-companion) | GPL-3.0 |
 | Dim overlay: `DimShade` (veil colour, Android 12 pass-through rules), the shade window in `DimService`, the moon drag that changes opacity, the clock window of `AutoDim` | [7xDash](https://github.com/zeekrownerapp-hub/7xdash-companion) `DimShade`, `DimOverlayService`, `RecordingFloatingService` | GPL-3.0 |
 
+## Driver display (`app.veil.cluster`)
+
+| Component | Source | Licence |
+|---|---|---|
+| The test window on the cluster screen and the interrupted-test recovery (`ClusterTest`, `ClusterDisplay`), the gear read (`GearReader`) | CAMCORDER (the author's Zeekr dashcam app): its `ClusterDisplayTest`, `HudDisplayLocator` and `telemetry.Signal` | GPL-3.0 |
+| The projection mechanism (ECARX clusters keep their dials over Android until the head unit is asked to project) | Documented in [shihabal3amri/DiPlay](https://github.com/shihabal3amri/DiPlay) `docs/COMPATIBILITY.md` and `GeelyClusterProjection.kt`, measured there on a Geely head unit; no code copied | GPL-3.0 |
+| The Zeekr cluster interface's method and constant names (`DimInteraction.dimProjectionScreenRequest`, `PROJECT_SCREEN_ACTION_TYPE_*`, `PROJECT_SCREEN_STATE_TYPE_*`) | Read from the ECARX SDK classes bundled in Zeekr's launcher, decompiled in [maxim-saplin/zeekr_apk_mod](https://github.com/maxim-saplin/zeekr_apk_mod) (6.7.0); the names are called by reflection, no code copied | Names only |
+
 ## AirPlay receiver (`app/src/main/cpp` and `app.veil.airplay`)
 
 The following source is in the repository (not fetched by Gradle), each under its upstream
@@ -47,5 +55,5 @@ decoded with MediaCodec); OpenSSL is downloaded from the official release and ha
 
 | Component | Source | Licence |
 |---|---|---|
-| Vector icons (back, AirPlay, moon, Wi-Fi, info) | [Material Symbols / Material Icons](https://fonts.google.com/icons) | Apache License 2.0 |
+| Vector icons (back, AirPlay, moon, Wi-Fi, info, driver display) | [Material Symbols / Material Icons](https://fonts.google.com/icons) | Apache License 2.0 |
 

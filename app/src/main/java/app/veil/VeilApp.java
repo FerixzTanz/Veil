@@ -24,6 +24,8 @@ public class VeilApp extends Application {
         }
         // The receiver stays on across restarts if it was left on.
         AirPlayService.applySaved(this);
+        // A driver display test that was killed before it stopped the projection is tidied up now.
+        app.veil.cluster.ClusterTest.recoverIfInterrupted(this);
     }
 
     public static Settings settings() {
