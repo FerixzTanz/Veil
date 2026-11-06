@@ -9,7 +9,11 @@ Each version's section becomes its GitHub release notes. Versions with a suffix 
   across and 134 px down, each cell labelled with its pixel position, so a photo of the cluster
   gives the exact rectangle it shows. It stays for 20 seconds. A new switch, Ask the head unit to
   project (on by default), runs the test with or without the projection request, to tell whether
-  the request is needed at all.
+  the request is needed at all. A second switch, Ask for the full-width layout (on by default),
+  also asks the cluster for its full-width navigation layout, the call the car's own navigation
+  uses, and puts the small window back when the test ends; the 7X's menu offers only the small
+  window, so this finds out whether the cluster still has the full one and takes the request from
+  another app. An interrupted test puts the small window back on the next start as well.
 
 ## 0.3.0-alpha (2026-11-06)
 

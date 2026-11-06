@@ -29,6 +29,7 @@ public class ClusterFragment extends Fragment {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private MaterialButton run;
     private SwitchCompat askProjection;
+    private SwitchCompat askFullLayout;
     private TextView result;
     private TextView log;
 
@@ -52,6 +53,8 @@ public class ClusterFragment extends Fragment {
         run = view.findViewById(R.id.cluster_run);
         askProjection = view.findViewById(R.id.cluster_ask_projection);
         askProjection.setChecked(true);
+        askFullLayout = view.findViewById(R.id.cluster_ask_full_layout);
+        askFullLayout.setChecked(true);
         result = view.findViewById(R.id.cluster_result);
         log = view.findViewById(R.id.cluster_log);
         run.setOnClickListener(v -> checkGearThenRun());
@@ -87,9 +90,10 @@ public class ClusterFragment extends Fragment {
                 }
                 run.setEnabled(true);
                 boolean ask = askProjection.isChecked();
+                boolean full = askFullLayout.isChecked();
                 if ("P".equals(gear)) {
                     ClusterLog.i("gear P");
-                    ClusterTest.start(requireContext(), ask, this::onResult);
+                    ClusterTest.start(requireContext(), ask, full, this::onResult);
                 } else if (gear != null) {
                     ClusterLog.i("gear " + gear + ": not running");
                     result.setText(getString(R.string.cluster_need_park, gear));
@@ -98,7 +102,7 @@ public class ClusterFragment extends Fragment {
                     VeilDialogs.confirm(requireContext(), getString(R.string.cluster_gear_unknown_title),
                             getString(R.string.cluster_gear_unknown_body),
                             getString(R.string.cluster_gear_unknown_action),
-                            () -> ClusterTest.start(requireContext(), ask, this::onResult));
+                            () -> ClusterTest.start(requireContext(), ask, full, this::onResult));
                 }
             });
         }, "VeilCluster-gear").start();

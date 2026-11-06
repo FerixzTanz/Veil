@@ -34,6 +34,18 @@ final class ClusterProjection {
     static final int STATE_IN_PROGRESS = 2;
     static final int STATE_FORCE_STOP = 3;
 
+    /**
+     * {@code INaviInteraction.ACTION_DIM_DISPLAY_*}: the cluster's navigation layout, as the car's own
+     * navigation app sets it through {@code notifyProjectScreenAction}. The 7X's steering-wheel menu
+     * offers only the small window; whether its cluster still knows the full layout, and whether it
+     * takes the request from another app, is what the test finds out.
+     */
+    static final int LAYOUT_OFF = 0x21;
+    static final int LAYOUT_SMALL = 0x22;
+    static final int LAYOUT_FULL = 0x23;
+    static final int LAYOUT_AR = 0x24;
+    static final String NAVI_INFO_CLASS = "com.ecarx.xui.adaptapi.diminteraction.INaviInteraction$IProjectionScreenInfo";
+
     private final Object dim;
     private final Method request;
     private final Method register;
@@ -136,6 +148,75 @@ final class ClusterProjection {
                 summary.append("; ").append(name).append(" failed: ").append(describe(t));
             }
             return false;
+        }
+    }
+
+    /**
+     * Asks the cluster for a navigation layout: {@link #LAYOUT_FULL} to try the whole panel,
+     * {@link #LAYOUT_SMALL} to put the small window back. The call the car's navigation uses, with a
+     * full-panel region. True when the head unit took the call.
+     */
+    boolean setNaviLayout(int layout, int width, int height) {
+        String name = layoutName(layout);
+        try {
+            Object navi = dim.getClass().getMethod("getNaviInteraction").invoke(dim);
+            if (navi == null) {
+                ClusterLog.w("layout " + name + ": no navigation interaction");
+                note("layout " + name + " unavailable");
+                return false;
+            }
+            Class<?> info = Class.forName(NAVI_INFO_CLASS);
+            Object args = Proxy.newProxyInstance(info.getClassLoader(), new Class<?>[]{info}, (proxy, method, a) -> {
+                switch (method.getName()) {
+                    case "getAction":
+                        return layout;
+                    case "getType":
+                    case "getScreenX":
+                    case "getScreenY":
+                        return 0;
+                    case "getScreenWidth":
+                        return width;
+                    case "getScreenHeight":
+                        return height;
+                    case "hashCode":
+                        return System.identityHashCode(proxy);
+                    case "equals":
+                        return a != null && proxy == a[0];
+                    case "toString":
+                        return "ClusterProjection.layout(" + name + ")";
+                    default:
+                        return null;
+                }
+            });
+            navi.getClass().getMethod("notifyProjectScreenAction", info).invoke(navi, args);
+            ClusterLog.i("layout " + name + " " + width + "x" + height + ": sent");
+            note("layout " + name + " ok");
+            return true;
+        } catch (Throwable t) {
+            ClusterLog.w("layout " + name + " failed: " + describe(t));
+            note("layout " + name + " failed: " + describe(t));
+            return false;
+        }
+    }
+
+    private void note(String step) {
+        synchronized (summary) {
+            summary.append("; ").append(step);
+        }
+    }
+
+    static String layoutName(int layout) {
+        switch (layout) {
+            case LAYOUT_OFF:
+                return "OFF";
+            case LAYOUT_SMALL:
+                return "SMALL";
+            case LAYOUT_FULL:
+                return "FULL";
+            case LAYOUT_AR:
+                return "AR";
+            default:
+                return String.valueOf(layout);
         }
     }
 
