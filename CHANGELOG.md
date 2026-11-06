@@ -2,6 +2,18 @@
 
 Each version's section becomes its GitHub release notes. Versions with a suffix are pre-releases.
 
+## 0.3.0-alpha (2026-11-06)
+
+- New Driver display page with a test for showing something on the instrument cluster. The
+  test covers the cluster's 2560x536 screen with a pattern labelled LEFT, CENTRE and RIGHT for
+  8 seconds and asks the head unit to project it through Zeekr's own cluster interface
+  (request, start; stop when the test ends), the way the car's navigation puts its map there.
+  It runs only in P: the gear is read from the car, and if it cannot be read the page asks you to
+  confirm. Every step goes to the Driver display log. If the app is stopped mid-test, the next
+  start sends the stop. Moved here from CAMCORDER, where the first round (a card in the middle
+  of the screen, no projection request) was accepted by Android but never shown by the cluster,
+  which on the 7X exposes Android content only in its navigation window.
+
 ## 0.2.0-alpha (2026-10-28)
 
 - Video casting: tap the AirPlay button in a video's player on the iPhone and choose Veil. Only
