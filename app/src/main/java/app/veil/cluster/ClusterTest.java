@@ -75,14 +75,16 @@ public final class ClusterTest {
      * has already checked the gear.
      */
     public static void start(Context context, Listener listener) {
-        start(context, true, listener);
+        start(context, true, false, listener);
     }
 
     /**
      * @param askProjection also ask the head unit to project (the REQUEST / START / STOP calls);
      *                      off shows the window alone, to tell whether the request matters
+     * @param askFullLayout also ask the cluster for its full-width navigation layout (the call the
+     *                      car's navigation uses), and put the small window back at the end
      */
-    public static void start(Context context, boolean askProjection, Listener listener) {
+    public static void start(Context context, boolean askProjection, boolean askFullLayout, Listener listener) {
         if (running) {
             return;
         }
@@ -123,12 +125,13 @@ public final class ClusterTest {
             finish(app, "Android refused the window on the cluster screen: " + ClusterProjection.describe(t), listener);
             return;
         }
-        ClusterLog.i("window opened on " + where + (askProjection ? "; asking to project" : "; no projection request"));
+        ClusterLog.i("window opened on " + where + (askProjection ? "; asking to project" : "; no projection request")
+                + (askFullLayout ? "; asking for the full layout" : ""));
         current = p;
         final Presentation shown = p;
 
         // The window is up: connect the cluster interface off the main thread, then ask to project.
-        if (askProjection) new Thread(() -> {
+        if (askProjection || askFullLayout) new Thread(() -> {
             StringBuilder why = new StringBuilder();
             ClusterProjection cp = ClusterProjection.connect(app, why);
             MAIN.post(() -> {
@@ -146,12 +149,22 @@ public final class ClusterTest {
                 }
                 projection = cp;
                 cp.listen();
-                setProjecting(true);
-                cp.send(ClusterProjection.ACTION_REQUEST, 0, 0, size.x, size.y);
+                if (askFullLayout) {
+                    // The layout first: if the cluster takes it, the window that opens is the full one.
+                    setLayoutChanged(true);
+                    cp.setNaviLayout(ClusterProjection.LAYOUT_FULL, size.x, size.y);
+                }
+                if (askProjection) {
+                    setProjecting(true);
+                    cp.send(ClusterProjection.ACTION_REQUEST, 0, 0, size.x, size.y);
+                }
                 MAIN.postDelayed(() -> {
                     if (current == shown && projection == cp) {
-                        cp.send(ClusterProjection.ACTION_START, 0, 0, size.x, size.y);
-                        lastResult = "Pattern on " + where + "; projection asked for.\nLook at the cluster.";
+                        if (askProjection) {
+                            cp.send(ClusterProjection.ACTION_START, 0, 0, size.x, size.y);
+                        }
+                        lastResult = "Pattern on " + where + (askProjection ? "; projection asked for" : "")
+                                + (askFullLayout ? "; full layout asked for" : "") + ".\nLook at the cluster.";
                         listener.onResult(lastResult);
                     }
                 }, START_AFTER_REQUEST_MS);
@@ -182,8 +195,15 @@ public final class ClusterTest {
             projection = null;
             String steps = "";
             if (cp != null) {
-                cp.send(ClusterProjection.ACTION_STOP, 0, 0, size.x, size.y);
-                setProjecting(false);
+                if (askProjection) {
+                    cp.send(ClusterProjection.ACTION_STOP, 0, 0, size.x, size.y);
+                    setProjecting(false);
+                }
+                if (askFullLayout) {
+                    // The small window back, the layout the 7X's own menu offers.
+                    cp.setNaviLayout(ClusterProjection.LAYOUT_SMALL, size.x, size.y);
+                    setLayoutChanged(false);
+                }
                 steps = "\nSteps: " + cp.summary();
                 cp.close();
             }
@@ -246,6 +266,13 @@ public final class ClusterTest {
         }
     }
 
+    private static void setLayoutChanged(boolean on) {
+        Settings settings = VeilApp.settings();
+        if (settings != null) {
+            settings.setClusterLayoutChanged(on);
+        }
+    }
+
     /**
      * On app start: if a test asked for the projection and was killed before its STOP, send STOP
      * and RECOVERY now so the cluster is not left on the last frame. Off the main thread, shows
@@ -253,9 +280,11 @@ public final class ClusterTest {
      */
     public static void recoverIfInterrupted(Context context) {
         Settings settings = VeilApp.settings();
-        if (settings == null || !settings.clusterProjecting()) {
+        if (settings == null || (!settings.clusterProjecting() && !settings.clusterLayoutChanged())) {
             return;
         }
+        final boolean projecting = settings.clusterProjecting();
+        final boolean layoutChanged = settings.clusterLayoutChanged();
         final Context app = context.getApplicationContext();
         ClusterLog.init(app);
         new Thread(() -> {
@@ -265,11 +294,17 @@ public final class ClusterTest {
                 ClusterLog.w("an earlier test did not finish; cannot send STOP (" + why + ")");
                 return;
             }
-            ClusterLog.i("an earlier test did not finish; sending STOP and RECOVERY");
-            cp.send(ClusterProjection.ACTION_STOP, 0, 0, ClusterDisplay.WIDTH, ClusterDisplay.HEIGHT);
-            cp.send(ClusterProjection.ACTION_RECOVERY, 0, 0, ClusterDisplay.WIDTH, ClusterDisplay.HEIGHT);
+            ClusterLog.i("an earlier test did not finish; tidying up");
+            if (projecting) {
+                cp.send(ClusterProjection.ACTION_STOP, 0, 0, ClusterDisplay.WIDTH, ClusterDisplay.HEIGHT);
+                cp.send(ClusterProjection.ACTION_RECOVERY, 0, 0, ClusterDisplay.WIDTH, ClusterDisplay.HEIGHT);
+                settings.setClusterProjecting(false);
+            }
+            if (layoutChanged) {
+                cp.setNaviLayout(ClusterProjection.LAYOUT_SMALL, ClusterDisplay.WIDTH, ClusterDisplay.HEIGHT);
+                settings.setClusterLayoutChanged(false);
+            }
             cp.close();
-            settings.setClusterProjecting(false);
         }, "VeilCluster-recover").start();
     }
 

@@ -31,6 +31,8 @@ public final class Settings {
     // Driver display
     /** True while the driver display test has asked the cluster to project and not yet sent STOP. */
     public static final String CLUSTER_PROJECTING = "cluster.projecting";
+    /** True while the test has asked for the full-width cluster layout and not yet put the small window back. */
+    public static final String CLUSTER_LAYOUT_CHANGED = "cluster.layout_changed";
 
     public static final String DEFAULT_RECEIVER_NAME = "Veil";
     /** Same starting point as 7xDash, which tuned these on the car. */
@@ -226,6 +228,14 @@ public final class Settings {
 
     public void setClusterProjecting(boolean on) {
         putBoolean(CLUSTER_PROJECTING, on);
+    }
+
+    public boolean clusterLayoutChanged() {
+        return getBoolean(CLUSTER_LAYOUT_CHANGED, false);
+    }
+
+    public void setClusterLayoutChanged(boolean on) {
+        putBoolean(CLUSTER_LAYOUT_CHANGED, on);
     }
 
     // ------------------------------------------------------------------ typed access
