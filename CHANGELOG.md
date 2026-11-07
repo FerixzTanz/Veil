@@ -2,6 +2,13 @@
 
 Each version's section becomes its GitHub release notes. Versions with a suffix are pre-releases.
 
+## 0.4.0-alpha (2026-11-07)
+
+- The Driver display page and its test are gone. The 7X's instrument cluster shows Android
+  content only in its small navigation window on the right, and the full-width layout request
+  did not change that, so there is nothing useful to put there. Nothing in Veil touches the
+  cluster or the head unit's cluster interface any more.
+
 ## 0.3.1-alpha (2026-11-06)
 
 - Driver display test, second round, after 0.3.0 put its RIGHT label in the cluster's

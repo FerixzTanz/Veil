@@ -5,9 +5,6 @@ An Android app for the Zeekr 7X head unit with two features:
 - **AirPlay receiver**: an iPhone can mirror its screen or cast a video to the car.
 - **Dim overlay**: an adjustable veil over the centre screen for night driving, with a small
   floating moon button.
-- **Driver display** (experimental): a test that tries to show a pattern on the instrument
-  cluster through Zeekr's own cluster interface, the first step towards putting a map or a
-  mirrored iPhone there.
 
 Veil is separate from the dashcam app on purpose. It never opens a camera or a microphone, so
 it cannot interfere with recording.

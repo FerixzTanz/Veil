@@ -28,12 +28,6 @@ public final class Settings {
     public static final String MOON_X = "moon.x";
     public static final String MOON_Y = "moon.y";
 
-    // Driver display
-    /** True while the driver display test has asked the cluster to project and not yet sent STOP. */
-    public static final String CLUSTER_PROJECTING = "cluster.projecting";
-    /** True while the test has asked for the full-width cluster layout and not yet put the small window back. */
-    public static final String CLUSTER_LAYOUT_CHANGED = "cluster.layout_changed";
-
     public static final String DEFAULT_RECEIVER_NAME = "Veil";
     /** Same starting point as 7xDash, which tuned these on the car. */
     public static final int DIM_OPACITY_DEFAULT = 90;
@@ -218,24 +212,6 @@ public final class Settings {
     public void setMoonPosition(int x, int y) {
         putInt(MOON_X, x);
         putInt(MOON_Y, y);
-    }
-
-    // ------------------------------------------------------------------ Driver display
-
-    public boolean clusterProjecting() {
-        return getBoolean(CLUSTER_PROJECTING, false);
-    }
-
-    public void setClusterProjecting(boolean on) {
-        putBoolean(CLUSTER_PROJECTING, on);
-    }
-
-    public boolean clusterLayoutChanged() {
-        return getBoolean(CLUSTER_LAYOUT_CHANGED, false);
-    }
-
-    public void setClusterLayoutChanged(boolean on) {
-        putBoolean(CLUSTER_LAYOUT_CHANGED, on);
     }
 
     // ------------------------------------------------------------------ typed access
