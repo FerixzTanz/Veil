@@ -6,6 +6,10 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
+import android.os.Handler;
+import android.os.HandlerThread;
+
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -21,21 +25,28 @@ import java.util.Locale;
 
 /**
  * AirPlay's own log: {@code files/logs/airplay-yyyyMMdd.log} inside the app, one day per file,
- * rotated at 4 MB, every line written at once so the last line is the last thing that worked
- * if the native receiver takes the process down. The last lines are also kept in memory for
- * the Network page. From 7xDash (GPL-3.0), without the USB drive.
+ * rotated at 4 MB. Lines are written by one background thread through a writer that stays open
+ * and is flushed after every line, so the last line is still the last thing that worked if the
+ * native receiver takes the process down, but no caller (the main thread, the native threads)
+ * waits on the disk or on each other. The last lines are also kept in memory for the Network
+ * page. From 7xDash (GPL-3.0), without the USB drive.
  */
 public final class AirPlayLog {
 
     private static final String TAG = "AirPlay";
     private static final long MAX_BYTES = 4L * 1024 * 1024;
     private static final int KEEP_LINES = 200;
+    /** A line kept in memory or written is cut here: native lines can run to 16 KB (plists, playlists). */
+    private static final int MAX_LINE = 2048;
     private static final int KEEP_DAYS = 7;
     private static final Object LOCK = new Object();
     private static final SimpleDateFormat TIME = new SimpleDateFormat("MM-dd HH:mm:ss.SSS", Locale.US);
     private static final SimpleDateFormat DAY = new SimpleDateFormat("yyyyMMdd", Locale.US);
     private static final ArrayDeque<String> RECENT = new ArrayDeque<>(KEEP_LINES);
     private static Context app;
+    private static Handler writer;
+    private static BufferedWriter out;
+    private static String outDay;
 
     private AirPlayLog() {
     }
@@ -43,6 +54,11 @@ public final class AirPlayLog {
     public static void init(Context context) {
         synchronized (LOCK) {
             app = context.getApplicationContext();
+            if (writer == null) {
+                HandlerThread t = new HandlerThread("airplay-log", android.os.Process.THREAD_PRIORITY_BACKGROUND);
+                t.start();
+                writer = new Handler(t.getLooper());
+            }
         }
     }
 
@@ -56,9 +72,8 @@ public final class AirPlayLog {
         write("W", message);
     }
 
-    /** From the native receiver; already in logcat at debug. */
+    /** From the native receiver; it is already in logcat from the native side. */
     static void nativeLine(String message) {
-        Log.d(TAG + "Native", message);
         write("N", message);
     }
 
@@ -78,34 +93,72 @@ public final class AirPlayLog {
     }
 
     private static void write(String level, String message) {
+        if (message != null && message.length() > MAX_LINE) {
+            message = message.substring(0, MAX_LINE) + "…";
+        }
+        Date now = new Date();
+        String line;
+        Handler w;
         synchronized (LOCK) {
-            Date now = new Date();
-            String line = TIME.format(now) + " " + level + " " + Thread.currentThread().getName() + ": " + message;
+            line = TIME.format(now) + " " + level + " " + Thread.currentThread().getName() + ": " + message;
             if (RECENT.size() == KEEP_LINES) {
                 RECENT.removeFirst();
             }
             RECENT.addLast(line);
-            if (app == null) {
-                return;
+            w = writer;
+        }
+        if (w == null) {
+            return;
+        }
+        final String day = DAY.format(now);
+        w.post(() -> append(day, line));
+    }
+
+    /** On the writer thread: one open writer per day file, flushed after each line. */
+    private static void append(String day, String line) {
+        Context context;
+        synchronized (LOCK) {
+            context = app;
+        }
+        if (context == null) {
+            return;
+        }
+        try {
+            if (out == null || !day.equals(outDay)) {
+                closeWriter();
+                File dir = dir(context);
+                if (dir == null) {
+                    return;
+                }
+                File file = new File(dir, "airplay-" + day + ".log");
+                if (file.length() > MAX_BYTES) {
+                    File old = new File(dir, "airplay-" + day + ".1.log");
+                    //noinspection ResultOfMethodCallIgnored
+                    old.delete();
+                    //noinspection ResultOfMethodCallIgnored
+                    file.renameTo(old);
+                }
+                out = new BufferedWriter(new FileWriter(file, true), 8192);
+                outDay = day;
             }
-            File dir = dir(app);
-            if (dir == null) {
-                return;
-            }
-            String day = DAY.format(now);
-            File file = new File(dir, "airplay-" + day + ".log");
-            if (file.length() > MAX_BYTES) {
-                File old = new File(dir, "airplay-" + day + ".1.log");
-                //noinspection ResultOfMethodCallIgnored
-                old.delete();
-                //noinspection ResultOfMethodCallIgnored
-                file.renameTo(old);
-            }
-            try (FileWriter out = new FileWriter(file, true)) {
-                out.write(line + "\n");
+            out.write(line);
+            out.write('\n');
+            out.flush();
+        } catch (IOException e) {
+            // the log must never take AirPlay down; start over with the next line
+            closeWriter();
+        }
+    }
+
+    private static void closeWriter() {
+        if (out != null) {
+            try {
+                out.close();
             } catch (IOException ignored) {
-                // the log must never take AirPlay down
+                // closing anyway
             }
+            out = null;
+            outDay = null;
         }
     }
 

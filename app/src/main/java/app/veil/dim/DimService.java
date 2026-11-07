@@ -75,14 +75,20 @@ public class DimService extends Service {
     private final AutoDim.Follower autoDim = new AutoDim.Follower();
     private final Runnable autoTick = this::followAutoDim;
 
-    private final Store.Listener onSetting = key -> main.post(() -> {
-        if (Settings.AUTO_DIM.equals(key) || Settings.AUTO_DIM_START.equals(key)
-                || Settings.AUTO_DIM_END.equals(key)) {
-            // A changed rule starts afresh and applies at once.
-            autoDim.reset();
+    private final Store.Listener onSetting = key -> {
+        // Only the dim and moon keys concern this service; AirPlay's writes must not relayout the shade.
+        if (!key.startsWith("dim.") && !key.startsWith("moon.")) {
+            return;
         }
-        sync();
-    });
+        main.post(() -> {
+            if (Settings.AUTO_DIM.equals(key) || Settings.AUTO_DIM_START.equals(key)
+                    || Settings.AUTO_DIM_END.equals(key)) {
+                // A changed rule starts afresh and applies at once.
+                autoDim.reset();
+            }
+            sync();
+        });
+    };
 
     /** Make the windows match the settings. Safe to call at any time. */
     public static void sync(Context context) {
@@ -144,7 +150,8 @@ public class DimService extends Service {
     private void sync() {
         followAutoDim();
         boolean allowed = windowManager != null && Overlays.canDraw(this);
-        boolean wantShade = allowed && settings.dimOn();
+        // A veil at 0% is invisible and still a full-screen layer for the compositor: no window then.
+        boolean wantShade = allowed && settings.dimOn() && settings.dimOpacity() > 0;
         boolean wantMoon = allowed && settings.moonShown();
 
         if (wantShade) {
@@ -232,13 +239,20 @@ public class DimService extends Service {
             return;
         }
         Point real = realSize();
+        int flagsBefore = shadeParams.flags;
+        float alphaBefore = shadeParams.alpha;
+        boolean sizeChanged = shadeParams.width != real.x || shadeParams.height != real.y;
         shadeParams.width = real.x;
         shadeParams.height = real.y;
         applyShadeLook();
-        try {
-            windowManager.updateViewLayout(shade, shadeParams);
-        } catch (Exception e) {
-            Log.e(TAG, "shade update failed", e);
+        // The colour alone is a view repaint; only the window's own attributes need a relayout
+        // in system_server (every settings write used to cause one).
+        if (sizeChanged || flagsBefore != shadeParams.flags || alphaBefore != shadeParams.alpha) {
+            try {
+                windowManager.updateViewLayout(shade, shadeParams);
+            } catch (Exception e) {
+                Log.e(TAG, "shade update failed", e);
+            }
         }
     }
 

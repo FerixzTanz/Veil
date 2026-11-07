@@ -45,7 +45,7 @@ public class AirPlayFragment extends Fragment {
         @Override
         public void run() {
             paint();
-            handler.postDelayed(this, 1000);
+            handler.postDelayed(this, 2000);
         }
     };
 
@@ -104,12 +104,12 @@ public class AirPlayFragment extends Fragment {
         }
         boolean on = AirPlayService.isRunning();
         String deviceName = AirPlayService.deviceName();
-        state.setText(on ? stateText(AirPlayService.state(), deviceName) : getString(R.string.airplay_state_off));
+        setIfChanged(state, on ? stateText(AirPlayService.state(), deviceName) : getString(R.string.airplay_state_off));
         String why = AirPlayService.problem();
-        problem.setText(why);
+        setIfChanged(problem, why);
         problem.setVisibility(why == null ? View.GONE : View.VISIBLE);
-        name.setText(getString(R.string.airplay_name_line, deviceName));
-        steps.setText(getString(R.string.airplay_steps, deviceName));
+        setIfChanged(name, getString(R.string.airplay_name_line, deviceName));
+        setIfChanged(steps, getString(R.string.airplay_steps, deviceName));
         List<String> where = AirPlayService.addresses();
         if (where.isEmpty()) {
             addresses.setVisibility(View.GONE);
@@ -120,7 +120,7 @@ public class AirPlayFragment extends Fragment {
             }
             String first = where.get(0).substring(where.get(0).lastIndexOf(' ') + 1);
             sb.append("\n\n").append(getString(R.string.airplay_address_test, first));
-            addresses.setText(sb);
+            setIfChanged(addresses, sb.toString());
             addresses.setVisibility(View.VISIBLE);
         }
         icon.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(requireContext(),
@@ -131,6 +131,14 @@ public class AirPlayFragment extends Fragment {
             painting = true;
             enabled.setChecked(saved);
             painting = false;
+        }
+    }
+
+    /** A TextView relayouts on every setText; skip it when nothing changed (this runs on a timer). */
+    static void setIfChanged(TextView view, CharSequence text) {
+        CharSequence now = view.getText();
+        if (text == null ? now.length() != 0 : !text.toString().contentEquals(now)) {
+            view.setText(text);
         }
     }
 

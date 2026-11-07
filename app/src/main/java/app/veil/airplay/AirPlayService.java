@@ -366,7 +366,9 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
             fail("native init failed");
             return;
         }
-        NativeBridge.nativeSetLogLevel(handle, NativeBridge.LOG_DEBUG);
+        // INFO: DEBUG logs every audio control packet and NTP exchange for a whole session, each
+        // line a JNI call and a file write. The native library's DEBUG is for development only.
+        NativeBridge.nativeSetLogLevel(handle, NativeBridge.LOG_INFO);
         NativeBridge.nativeServerAudioConfigure(handle, 0, 95, 0, false, false, true, true, false);
         NativeBridge.nativeSetH265Enabled(handle, false);
         // ALAC is what an iPhone sends for sound only (a music app's AirPlay button). No
@@ -725,9 +727,6 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     @Override
     public void onMirrorRunning(boolean running) {
         AirPlayLog.i("mirror stream " + (running ? "running" : "ended"));
-        if (handle != 0) {
-            NativeBridge.nativeSetLogLevel(handle, running ? NativeBridge.LOG_INFO : NativeBridge.LOG_DEBUG);
-        }
         firstFrame = running;
         if (!running) {
             decoder.release();
@@ -760,6 +759,11 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     @Override
     public void onAudioTeardown() {
         AirPlayLog.i("audio stream ended");
+        // Stop the output and drop the decoder now: an iPhone that keeps the connection open after
+        // its sound ends used to leave a realtime audio stream and a 50 Hz decoder thread running.
+        if (handle != 0) {
+            NativeBridge.nativeServerAudioStop(handle);
+        }
         main.post(this::releaseFocus);
     }
 
@@ -767,10 +771,28 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
     public void onConnectionInit() {
         AirPlayLog.i("iPhone connected (" + connections.incrementAndGet() + " open)");
         main.post(() -> {
+            // Discovery is done: let the Wi-Fi chip filter multicast again while the session lasts.
+            holdMulticast(false);
             if (!mirroring) {
                 setState(STATE_CONNECTED);
             }
         });
+    }
+
+    /**
+     * The multicast lock makes the Wi-Fi chip pass every multicast frame on the network up to the
+     * CPU. The responder needs it to be found; a connected session does not. Main thread.
+     */
+    private void holdMulticast(boolean hold) {
+        if (multicast == null) {
+            return;
+        }
+        boolean held = multicast.isHeld();
+        if (hold && !held) {
+            multicast.acquire();
+        } else if (!hold && held) {
+            multicast.release();
+        }
     }
 
     @Override
@@ -783,6 +805,7 @@ public class AirPlayService extends Service implements RaopCallbackHandler {
             }
             main.post(() -> {
                 releaseFocus();
+                holdMulticast(true);
                 if (soundOnly) {
                     soundOnly = false;
                     problem = null;

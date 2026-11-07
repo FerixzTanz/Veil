@@ -81,12 +81,20 @@ struct AudioEngine {
     }
 
     void pause() {
-        std::lock_guard<std::mutex> lk(mRebuildLock);
-        mRunning = false;
-        if (mOutput && mOutputActive) {
-            mOutput->stop();
-            mOutputActive = false;
+        {
+            std::lock_guard<std::mutex> lk(mRebuildLock);
+            mRunning = false;
+            if (mOutput && mOutputActive) {
+                mOutput->stop();
+                mOutputActive = false;
+            }
         }
+        // Drop the decoder too: left alive, its drain thread wakes 50 times a second and the codec
+        // service keeps a realtime instance, for as long as the receiver stays on. decode() rebuilds
+        // it on the next packet. Taken after mRebuildLock is released: decode() takes mDecoderLock
+        // first and mRebuildLock inside it, never the other way round.
+        std::lock_guard<std::mutex> dl(mDecoderLock);
+        mDecoder = {};
     }
 
     // touches decoder: must not run concurrently with decode()
@@ -121,6 +129,7 @@ struct AudioEngine {
     // touches decoder: must not run concurrently with stop()
     void decode(const uint8_t *data, size_t len, int ct, int64_t ptsNs) {
         if (!mTimeline) return;
+        std::lock_guard<std::mutex> dl(mDecoderLock);
         if (mPending.load(std::memory_order_relaxed)) {
             if (AudioConfig *raw = mPending.exchange(nullptr, std::memory_order_acquire)) {
                 std::unique_ptr<AudioConfig> c(raw);
@@ -177,10 +186,11 @@ private:
     std::shared_ptr<LogSink> mLog;
 
     // thread safety: decode thread reads mTimeline/mOutput unguarded (nothing else writes them outside teardown) and writes them under mRebuildLock
-    // all other threads read them under mRebuildLock; mDecoder is decode-thread-only
+    // all other threads read them under mRebuildLock; mDecoder is touched by decode() and pause() under mDecoderLock
     // teardown stop() requires caller to guarantee no in-flight or future decode() calls
 
     std::mutex mRebuildLock;
+    std::mutex mDecoderLock;                   // decode() holds it for the whole call; pause() takes it to release mDecoder
     std::shared_ptr<TimelineBuffer> mTimeline; // guarded by mRebuildLock
     std::shared_ptr<AudioOutput> mOutput;      // guarded by mRebuildLock
     bool mRunning = false;                     // requested output state, guarded by mRebuildLock
