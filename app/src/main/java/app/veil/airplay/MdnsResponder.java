@@ -64,7 +64,10 @@ final class MdnsResponder {
     private static final int TTL_HOST = 120;
     private static final int TTL_OTHER = 4500;
     private static final int LEGACY_TTL = 10;
-    private static final long SCAN_MS = 5000;
+    /** How often the interfaces are listed again (the 7X has dozens; each listing is a batch of ioctls). */
+    private static final long SCAN_MS = 15_000;
+    /** Longest the loop sleeps in receive() before it checks for a scan or an announcement. */
+    private static final int MAX_WAIT_MS = 2000;
     private static final String[] SERVICES = {"_services", "_dns-sd", "_udp", "local"};
 
     static {
@@ -119,7 +122,7 @@ final class MdnsResponder {
             socket.setReuseAddress(true);
             socket.bind(new InetSocketAddress(PORT));
             socket.setTimeToLive(255);
-            socket.setSoTimeout(250);
+            socket.setSoTimeout(MAX_WAIT_MS);
         } catch (IOException e) {
             socket.close();
             socket = null;
@@ -158,6 +161,7 @@ final class MdnsResponder {
 
     private void loop() {
         byte[] buf = new byte[9000];
+        int timeout = MAX_WAIT_MS;
         long nextScan = 0;
         long[] announceAt = {0, 1000, 3000, 7000};
         int announced = 0;
@@ -178,6 +182,19 @@ final class MdnsResponder {
                         send(l, records(l), new ArrayList<>(), false, null, GROUP);
                     }
                     announced++;
+                }
+                // Sleep until the next scan or announcement is due, not a fixed 250 ms
+                long untilScan = nextScan - now;
+                long untilAnnounce = announced < announceAt.length
+                        ? started + announceAt[announced] - now : MAX_WAIT_MS;
+                int wait = (int) Math.max(20, Math.min(MAX_WAIT_MS, Math.min(untilScan, untilAnnounce)));
+                if (wait != timeout) {
+                    try {
+                        socket.setSoTimeout(wait);
+                        timeout = wait;
+                    } catch (IOException ignored) {
+                        // keep the previous timeout
+                    }
                 }
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 try {
@@ -296,11 +313,13 @@ final class MdnsResponder {
         if (!(packet.getAddress() instanceof Inet4Address) || packet.getLength() < 12) {
             return;
         }
-        byte[] d = new byte[packet.getLength()];
-        System.arraycopy(packet.getData(), packet.getOffset(), d, 0, d.length);
-        if ((rd16(d, 2) & 0x8000) != 0) {
+        // Responses (most of what reaches port 5353) are dropped before anything is copied
+        int off = packet.getOffset();
+        if ((((packet.getData()[off + 2] & 0xFF) << 8) & 0x8000) != 0) {
             return; // a response, not a question
         }
+        byte[] d = new byte[packet.getLength()];
+        System.arraycopy(packet.getData(), off, d, 0, d.length);
         Inet4Address src = (Inet4Address) packet.getAddress();
         Link link = null;
         for (Link l : snapshot()) {

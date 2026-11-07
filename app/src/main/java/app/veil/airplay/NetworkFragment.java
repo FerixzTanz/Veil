@@ -73,11 +73,11 @@ public class NetworkFragment extends Fragment {
         List<String> addresses = AirPlayService.addresses();
         boolean running = AirPlayService.isRunning();
         if (!running) {
-            receiver.setText(R.string.net_receiver_off);
+            AirPlayFragment.setIfChanged(receiver, getString(R.string.net_receiver_off));
         } else if (addresses.isEmpty()) {
-            receiver.setText(R.string.net_receiver_no_address);
+            AirPlayFragment.setIfChanged(receiver, getString(R.string.net_receiver_no_address));
         } else {
-            receiver.setText(getString(R.string.net_receiver_on, AirPlayService.deviceName(),
+            AirPlayFragment.setIfChanged(receiver, getString(R.string.net_receiver_on, AirPlayService.deviceName(),
                     String.join("\n", addresses)));
         }
 
@@ -90,7 +90,7 @@ public class NetworkFragment extends Fragment {
         f.canDrawOverlay = Overlays.canDraw(requireContext());
         List<Visibility.Reason> reasons = Visibility.reasons(f);
         if (reasons.isEmpty()) {
-            advice.setText(R.string.net_advice_ok);
+            AirPlayFragment.setIfChanged(advice, getString(R.string.net_advice_ok));
         } else {
             StringBuilder sb = new StringBuilder();
             for (Visibility.Reason r : reasons) {
@@ -99,15 +99,15 @@ public class NetworkFragment extends Fragment {
                 }
                 sb.append(getString(text(r)));
             }
-            advice.setText(sb);
+            AirPlayFragment.setIfChanged(advice, sb.toString());
         }
 
-        networks.setText(String.join("\n", report.lines()));
+        AirPlayFragment.setIfChanged(networks, String.join("\n", report.lines()));
 
         List<String> lines = AirPlayLog.recent();
         lines.removeIf(AirPlayLog::isKeepAlive);
         List<String> tail = lines.subList(Math.max(0, lines.size() - 60), lines.size());
-        log.setText(tail.isEmpty() ? getString(R.string.net_log_empty) : String.join("\n", tail));
+        AirPlayFragment.setIfChanged(log, tail.isEmpty() ? getString(R.string.net_log_empty) : String.join("\n", tail));
     }
 
     private static int text(Visibility.Reason r) {

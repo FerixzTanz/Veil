@@ -7,8 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The app's {@link Store}: one SharedPreferences file, "veil", written with
- * commit() so a value survives even if the process dies right after.
+ * The app's {@link Store}: one SharedPreferences file, "veil". Writes use apply(): the value
+ * is in memory at once and Android finishes the disk write before the process is allowed to
+ * go, so nothing is lost, and a slider or a drag no longer blocks the main thread on the disk
+ * for every step.
  */
 public final class PrefsStore implements Store {
 
@@ -39,12 +41,12 @@ public final class PrefsStore implements Store {
 
     @Override
     public void put(String key, String value) {
-        prefs.edit().putString(key, value).commit();
+        prefs.edit().putString(key, value).apply();
     }
 
     @Override
     public void remove(String key) {
-        prefs.edit().remove(key).commit();
+        prefs.edit().remove(key).apply();
     }
 
     @Override

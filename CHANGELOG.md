@@ -2,6 +2,35 @@
 
 Each version's section becomes its GitHub release notes. Versions with a suffix are pre-releases.
 
+## 0.4.0-alpha (2026-11-07)
+
+- The Driver display page and its test are gone. The 7X's instrument cluster shows Android
+  content only in its small navigation window on the right, and the full-width layout request
+  did not change that, so there is nothing useful to put there. Nothing in Veil touches the
+  cluster or the head unit's cluster interface any more.
+- Less work for the head unit while Veil runs, after a review of everything that runs in the
+  background:
+  - When an iPhone's sound ends but it stays connected, the audio output and decoder are now
+    stopped at once. They used to keep a realtime audio stream and a thread waking 50 times a
+    second open for as long as the receiver stayed on.
+  - The Wi-Fi multicast lock, which makes the chip hand every multicast frame on the network to
+    the CPU, is now held only while nobody is connected. A connected iPhone no longer needs it.
+  - The discovery responder sleeps until its next task instead of waking four times a second,
+    lists the network interfaces every 15 seconds instead of every 5, and drops the many mDNS
+    answers from other devices before copying them.
+  - The AirPlay log is written by one background thread through a file that stays open, instead
+    of opening and closing the file for every line on whichever thread logged. The native
+    receiver logs at INFO rather than DEBUG, which stopped every audio control packet and clock
+    exchange from being written to the log, and no longer logs each line twice.
+  - A veil at 0% no longer keeps an invisible full-screen window for the compositor to blend.
+    Changing the veil's colour repaints the window in place; only a change of size, alpha or
+    touch flags asks the system for a relayout. Settings written by AirPlay no longer touch the
+    veil at all.
+  - Settings are saved without blocking the main thread on the disk, which the opacity slider and
+    the moon drag did on every step.
+  - The AirPlay and Network pages update their text only when it changed, and the AirPlay page
+    looks every 2 seconds instead of every second.
+
 ## 0.3.1-alpha (2026-11-06)
 
 - Driver display test, second round, after 0.3.0 put its RIGHT label in the cluster's
